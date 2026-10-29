@@ -1,16 +1,28 @@
-# React + Vite
+# CC Manager : interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface React (Vite, Tailwind v4) de gestion des examens de contrôle continu. Nécessite l'API `cc-manager-backend`.
 
-Currently, two official plugins are available:
+## Lancer en local
+```bash
+npm install
+cp .env.example .env     # VITE_API_URL=http://localhost:3000/api
+npm run dev              # http://localhost:5173
+```
+Relancer `npm run dev` après toute modification du `.env`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Écrans
+- Public : `/` (connexion étudiant), `/inscription`, `/professeur`
+- Étudiant : `/resultats`, `/resultats/:id`
+- Professeur : `/tableau-de-bord`, `/examens`, `/examens/nouveau`, `/examens/:id/notes`, `/examens/:id/resultats`, `/etudiants`, `/resultats-publies`
 
-## React Compiler
+## Reste à faire
+Exports PDF et Excel, pages « Mot de passe oublié » et « Profil », modifier/supprimer un examen, vérification mobile, déploiement.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Contribuer
+Ne pas pousser sur `main`.
+```bash
+git checkout -b feature/nom-de-la-fonctionnalite
+git add . && git commit -m "feat: description"
+git push -u origin feature/nom-de-la-fonctionnalite
+```
+Puis ouvrir une Pull Request vers `main`.
