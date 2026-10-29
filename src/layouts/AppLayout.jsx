@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   GraduationCap, LayoutDashboard, FileText, PlusCircle, LogOut, Menu, X,
-  ClipboardList, Users, PenLine, CheckCircle2, Settings, Search, Bell, ShieldCheck,
+  ClipboardList, Users, CheckCircle2, Settings, Search, Bell, ShieldCheck,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -18,7 +18,6 @@ const roles = {
       { to: '/examens', label: 'Mes examens', icon: ClipboardList, end: true },
       { to: '/examens/nouveau', label: 'Créer un examen', icon: PlusCircle },
       { to: '/etudiants', label: 'Liste des étudiants', icon: Users },
-      { to: '/examens/1/notes', label: 'Saisie des notes', icon: PenLine },
       { to: '/resultats-publies', label: 'Résultats publiés', icon: CheckCircle2 },
     ],
   },
