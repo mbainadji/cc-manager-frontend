@@ -14,6 +14,7 @@ import ExamResults from './pages/ExamResults'
 import Students from './pages/Students'
 import MyResults from './pages/MyResults'
 import ResultDetail from './pages/ResultDetail'
+import Profile from './pages/Profile'
 
 export default function App() {
   return (
@@ -24,6 +25,12 @@ export default function App() {
             <Route path="/" element={<Login />} />
             <Route path="/inscription" element={<StudentRegister />} />
             <Route path="/professeur" element={<ProfessorLogin />} />
+
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AppLayout />}>
+                <Route path="/profil" element={<Profile />} />
+              </Route>
+            </Route>
 
             <Route element={<ProtectedRoute role="student" />}>
               <Route element={<AppLayout role="student" />}>
@@ -37,6 +44,7 @@ export default function App() {
                 <Route path="/tableau-de-bord" element={<Dashboard />} />
                 <Route path="/examens" element={<ExamsList />} />
                 <Route path="/examens/nouveau" element={<CreateExam />} />
+                <Route path="/examens/:id/modifier" element={<CreateExam />} />
                 <Route path="/examens/:id/notes" element={<GradeEntry />} />
                 <Route path="/examens/:id/resultats" element={<ExamResults />} />
                 <Route path="/etudiants" element={<Students />} />

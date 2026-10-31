@@ -1,97 +1,73 @@
-import { useForm } from 'react-hook-form'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, ArrowLeft, Loader2 } from 'lucide-react'
-import AuthLayout from '../layouts/AuthLayout'
-import Field from '../components/Field'
-import { useAuth } from '../context/AuthContext'
+import { Loader2 } from 'lucide-react'
+import { useToast } from '../components/ToastContext'
 import api, { errorMessage } from '../api'
 
-export default function StudentRegister() {
-  const navigate = useNavigate()
-  const { login } = useAuth()
-  const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm()
+const input =
+  'w-full rounded-md border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
 
-  const onSubmit = async (data) => {
+export default function StudentRegister() {
+  const toast = useToast()
+  const navigate = useNavigate()
+  const [form, setForm] = useState({ fullName: '', matricule: '', password: '', confirm: '' })
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (form.password.length < 8) return setError('Le mot de passe doit contenir au moins 8 caractères.')
+    if (form.password !== form.confirm) return setError('Les deux mots de passe ne sont pas identiques.')
+    setBusy(true)
     try {
-      const { data: res } = await api.post('/auth/student/register', {
-        fullName: data.fullName,
-        matricule: data.matricule,
-        password: data.password,
+      await api.post('/auth/student/register', {
+        fullName: form.fullName.trim(),
+        matricule: form.matricule.trim(),
+        password: form.password,
       })
-      login({ ...res.user, token: res.token })
-      navigate('/resultats')
+      toast('success', 'Compte créé. Vous pouvez vous connecter.')
+      navigate('/')
     } catch (err) {
-      setError('root.server', { message: errorMessage(err) })
+      setError(errorMessage(err))
+    } finally {
+      setBusy(false)
     }
   }
 
   return (
-    <AuthLayout
-      eyebrow="Espace étudiant"
-      title="Rejoignez CC Manager."
-      subtitle="Activez votre compte pour consulter vos notes de contrôle continu en toute confidentialité."
-      features={[
-        { icon: 'book', title: 'Vos résultats', text: 'Retrouvez vos notes publiées au même endroit.' },
-        { icon: 'shield', title: 'Confidentialité', text: 'Vous seul voyez vos notes.' },
-      ]}
-    >
-      <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Activation</p>
-        <h2 className="mt-2 text-2xl font-bold text-slate-900">Activer mon compte étudiant</h2>
-        <p className="mt-2 text-xs text-slate-500">
-          Saisissez votre nom et votre matricule tels que fournis par votre établissement, puis choisissez un mot de passe.
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h1 className="text-lg font-semibold text-slate-800">Activer mon compte étudiant</h1>
+        <p className="mt-1 text-xs text-slate-500">
+          Utilisez le nom et le matricule figurant sur la liste de votre professeur.
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4" noValidate>
-          <Field
-            label="Nom complet" name="fullName" register={register}
-            placeholder="Saisissez votre nom complet"
-            rules={{ required: 'Le nom complet est requis' }}
-            error={errors.fullName?.message}
-          />
-          <Field
-            label="Matricule" name="matricule" register={register}
-            placeholder="Saisissez votre matricule"
-            rules={{ required: 'Le matricule est requis' }}
-            error={errors.matricule?.message}
-          />
-          <Field
-            label="Mot de passe" name="password" type="password" register={register}
-            placeholder="8 caractères minimum"
-            rules={{
-              required: 'Le mot de passe est requis',
-              minLength: { value: 8, message: '8 caractères minimum' },
-            }}
-            error={errors.password?.message}
-          />
-          <Field
-            label="Confirmer le mot de passe" name="confirm" type="password" register={register}
-            placeholder="Saisissez-le à nouveau"
-            rules={{
-              required: 'Veuillez confirmer le mot de passe',
-              validate: (v) => v === watch('password') || 'Les mots de passe ne correspondent pas',
-            }}
-            error={errors.confirm?.message}
-          />
+        <label className="mt-5 block text-xs font-medium text-slate-600">Nom complet</label>
+        <input className={`${input} mt-1`} value={form.fullName} onChange={set('fullName')} required autoComplete="name" />
 
-          {errors.root?.server && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">
-              {errors.root.server.message}
-            </p>
-          )}
+        <label className="mt-4 block text-xs font-medium text-slate-600">Matricule</label>
+        <input className={`${input} mt-1`} value={form.matricule} onChange={set('matricule')} required />
 
-          <button type="submit" disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-            {isSubmitting
-              ? <><Loader2 size={14} className="animate-spin" /> Activation…</>
-              : <>Activer mon compte <ArrowRight size={14} /></>}
-          </button>
-        </form>
+        <label className="mt-4 block text-xs font-medium text-slate-600">Mot de passe</label>
+        <input type="password" className={`${input} mt-1`} value={form.password} onChange={set('password')} required autoComplete="new-password" />
 
-        <Link to="/" className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:underline">
-          <ArrowLeft size={12} /> Retour à la connexion
+        <label className="mt-4 block text-xs font-medium text-slate-600">Confirmer le mot de passe</label>
+        <input type="password" className={`${input} mt-1`} value={form.confirm} onChange={set('confirm')} required autoComplete="new-password" />
+
+        {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
+
+        <button type="submit" disabled={busy}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
+          {busy && <Loader2 size={14} className="animate-spin" />} Créer mon compte
+        </button>
+
+        <Link to="/" className="mt-4 block text-center text-xs font-medium text-primary hover:underline">
+          J'ai déjà un compte
         </Link>
-      </div>
-    </AuthLayout>
+      </form>
+    </div>
   )
 }

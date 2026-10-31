@@ -4,6 +4,8 @@ import { Plus, Search } from 'lucide-react'
 import { Card, PageHeader, Th, Notice } from '../components/ui'
 import StatusBadge from '../components/StatusBadge'
 import Pager from '../components/Pager'
+import Modal from '../components/Modal'
+import { useToast } from '../components/ToastContext'
 import api, { errorMessage } from '../api'
 import { STATUS_LABEL, fmtDate } from '../format'
 
@@ -21,11 +23,14 @@ const toRow = (e) => ({
 
 export default function ExamsList({ onlyPublished = false }) {
   const flash = useLocation().state?.flash
+  const toast = useToast()
   const [exams, setExams] = useState(null) // null = chargement
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
   const [status, setStatus] = useState('all')
   const [page, setPage] = useState(1)
+  const [toDelete, setToDelete] = useState(null)
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -34,6 +39,20 @@ export default function ExamsList({ onlyPublished = false }) {
       .catch((err) => alive && setError(errorMessage(err)))
     return () => { alive = false }
   }, [])
+
+  const remove = async () => {
+    setBusy(true)
+    try {
+      await api.delete(`/exams/${toDelete.id}`)
+      setExams((list) => list.filter((e) => e.id !== toDelete.id))
+      setToDelete(null)
+      toast('success', 'Examen supprimé.')
+    } catch (err) {
+      toast('error', errorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const list = (exams ?? []).filter(
     (e) =>
@@ -79,7 +98,7 @@ export default function ExamsList({ onlyPublished = false }) {
         {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[680px] text-xs">
+          <table className="w-full min-w-[760px] text-xs">
             <thead className="border-b border-slate-100">
               <tr><Th>Titre de l'examen</Th><Th>Date</Th><Th>Étudiants</Th><Th>Notes saisies</Th><Th>Statut</Th><Th>Action</Th></tr>
             </thead>
@@ -95,9 +114,18 @@ export default function ExamsList({ onlyPublished = false }) {
                   <td className="px-3 py-3 text-slate-600">{e.graded}/{e.students}</td>
                   <td className="px-3 py-3"><StatusBadge status={e.status} /></td>
                   <td className="px-3 py-3">
-                    {e.status === 'Publié'
-                      ? <Link to={`/examens/${e.id}/resultats`} className="font-medium text-primary hover:underline">Voir les résultats</Link>
-                      : <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Saisir les notes</Link>}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      {e.status === 'Publié'
+                        ? <>
+                            <Link to={`/examens/${e.id}/resultats`} className="font-medium text-primary hover:underline">Résultats</Link>
+                            <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Corriger</Link>
+                          </>
+                        : <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Saisir les notes</Link>}
+                      <Link to={`/examens/${e.id}/modifier`} className="font-medium text-slate-600 hover:underline">Modifier</Link>
+                      {e.status !== 'Publié' && (
+                        <button onClick={() => setToDelete(e)} className="font-medium text-red-600 hover:underline">Supprimer</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -112,6 +140,11 @@ export default function ExamsList({ onlyPublished = false }) {
         </div>
         <Pager page={current} pages={pages} total={list.length} perPage={PER_PAGE} onChange={setPage} />
       </Card>
+
+      <Modal open={!!toDelete} title="Supprimer cet examen ?" confirmLabel="Supprimer"
+        onConfirm={remove} onClose={() => !busy && setToDelete(null)} loading={busy}>
+        « {toDelete?.title} » et toutes les notes saisies seront supprimés. Cette action est définitive.
+      </Modal>
     </>
   )
 }

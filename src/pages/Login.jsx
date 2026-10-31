@@ -69,7 +69,6 @@ export default function Login() {
               <input type="checkbox" {...register('remember')} className="rounded border-slate-300" />
               Se souvenir de moi
             </label>
-            <a href="#" className="text-primary hover:underline">Mot de passe oublié ?</a>
           </div>
 
           {errors.root?.server && (

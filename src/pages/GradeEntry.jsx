@@ -88,6 +88,10 @@ export default function GradeEntry() {
 
   const save = async () => {
     if (invalidCount) return toast('error', `${invalidCount} note(s) invalide(s) : le barème est de ${MAX}.`)
+    // Après publication, une note peut être corrigée mais pas retirée
+    if (published && students.some((s) => changedRow(s) && scoreOf(s).trim() === '' && saved[s.studentId]?.score !== ''))
+      return toast('error', 'Une note publiée peut être corrigée, pas retirée.')
+
     setBusy(true)
     try {
       const grades = students.filter(changedRow).map((s) => ({
@@ -97,7 +101,9 @@ export default function GradeEntry() {
       }))
       await api.put(`/exams/${id}/grades`, { grades })
       setSaved(values)
-      toast('success', 'Modifications enregistrées.')
+      toast('success', published
+        ? 'Corrections enregistrées : les étudiants voient la mise à jour.'
+        : 'Modifications enregistrées.')
     } catch (err) {
       toast('error', errorMessage(err))
     } finally {
@@ -151,19 +157,27 @@ export default function GradeEntry() {
           </span>
         )}
 
-        <button onClick={save} disabled={!dirty || busy || published}
+        <button onClick={save} disabled={!dirty || busy}
           className={`${btn} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>
           {busy && !confirm ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}Enregistrer les modifications
         </button>
-        <button onClick={() => setConfirm(true)} disabled={!canPublish || busy}
-          className={`${btn} bg-primary text-white hover:bg-blue-700`}>
-          <Send size={14} /> Publier les résultats
-        </button>
+        {!published && (
+          <button onClick={() => setConfirm(true)} disabled={!canPublish || busy}
+            className={`${btn} bg-primary text-white hover:bg-blue-700`}>
+            <Send size={14} /> Publier les résultats
+          </button>
+        )}
       </div>
 
       {!published && !canPublish && (
         <p className="mt-2 text-[11px] text-slate-400">
           Pour publier : enregistrez vos modifications et saisissez au moins une note valide (de 0 à {MAX}).
+        </p>
+      )}
+
+      {published && (
+        <p className="mt-3 rounded-md bg-blue-50 px-3 py-2 text-[11px] text-slate-600">
+          Résultats publiés : vous pouvez corriger une note ou une appréciation. L'étudiant verra « Note corrigée le … ». Une note publiée ne peut pas être retirée.
         </p>
       )}
 
@@ -203,13 +217,12 @@ export default function GradeEntry() {
                       <input
                         ref={(el) => { inputs.current[i] = el }}
                         value={v}
-                        disabled={published}
                         inputMode="decimal"
                         aria-label={`Note de ${s.fullName}`}
                         onChange={(e) => setField(s.studentId, 'score', e.target.value)}
                         onKeyDown={(e) => onKey(e, i)}
                         onFocus={(e) => e.target.select()}
-                        className={`w-16 rounded-md border px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:ring-2 disabled:bg-slate-100 ${
+                        className={`w-16 rounded-md border px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:ring-2 ${
                           bad ? 'border-red-400 focus:ring-red-200' : 'border-slate-300 focus:border-primary focus:ring-primary/20'
                         }`}
                       />
@@ -217,12 +230,11 @@ export default function GradeEntry() {
                     <td className="px-3 py-1.5">
                       <input
                         value={values[s.studentId]?.comment ?? ''}
-                        disabled={published}
                         maxLength={500}
                         aria-label={`Appréciation pour ${s.fullName}`}
                         placeholder="Facultatif"
                         onChange={(e) => setField(s.studentId, 'comment', e.target.value)}
-                        className="w-full min-w-40 rounded-md border border-slate-300 px-2 py-1.5 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100"
+                        className="w-full min-w-40 rounded-md border border-slate-300 px-2 py-1.5 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       />
                     </td>
                     <td className="px-3 py-2">
@@ -247,7 +259,7 @@ export default function GradeEntry() {
       <Modal open={confirm} title="Publier les résultats ?" confirmLabel="Publier définitivement"
         onConfirm={publish} onClose={() => !busy && setConfirm(false)} loading={busy}>
         {filled} notes seront visibles par les étudiants concernés, chacun uniquement pour sa propre note.
-        {missing > 0 && ` ${missing} étudiant(s) sans note ne verront rien.`} Cette action est définitive.
+        {missing > 0 && ` ${missing} étudiant(s) sans note ne verront rien.`} Vous pourrez ensuite corriger une note, mais pas la retirer.
       </Modal>
     </>
   )

@@ -23,10 +23,11 @@ const roles = {
   },
 }
 
-export default function AppLayout({ role }) {
+export default function AppLayout({ role: roleProp }) {
   const [open, setOpen] = useState(false)
   const { user: account, logout } = useAuth()
   const navigate = useNavigate()
+  const role = roleProp ?? account?.role
   const { label, menu } = roles[role]
 
   const name = account?.name ?? ''
@@ -61,7 +62,10 @@ export default function AppLayout({ role }) {
         </nav>
 
         <div className="space-y-1 border-t border-white/10 pt-3 text-xs text-white/70">
-          <a href="#" className="flex items-center gap-3 px-3 py-2 hover:text-white"><Settings size={14} /> Profil et paramètres</a>
+          <NavLink to="/profil" onClick={() => setOpen(false)}
+            className={({ isActive }) => `flex items-center gap-3 px-3 py-2 hover:text-white ${isActive ? 'text-white' : ''}`}>
+            <Settings size={14} /> Profil et paramètres
+          </NavLink>
           <button onClick={handleLogout} className="flex w-full items-center gap-3 px-3 py-2 hover:text-white">
             <LogOut size={14} /> Déconnexion
           </button>

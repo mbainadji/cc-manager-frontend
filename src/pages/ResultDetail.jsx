@@ -44,7 +44,10 @@ export default function ResultDetail() {
       />
 
       <Card>
-        <Badge tone="green">Publié</Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="green">Publié</Badge>
+          {r.correctedAt && <Badge tone="blue">Corrigée</Badge>}
+        </div>
         <h2 className="mt-3 text-xl font-bold text-slate-900">{r.title}</h2>
         <p className="text-xs text-slate-400">{user?.name} · Matricule {user?.matricule}</p>
 
@@ -70,6 +73,9 @@ export default function ResultDetail() {
           </p>
           <p className="mt-2 text-xs text-slate-600">{r.comment || 'Aucune appréciation pour cette évaluation.'}</p>
           <p className="mt-2 text-[10px] text-slate-400">Publié le {fmtDate(r.publishedAt)}</p>
+          {r.correctedAt && (
+            <p className="mt-1 text-[10px] font-medium text-primary">Note corrigée le {fmtDate(r.correctedAt)}</p>
+          )}
         </div>
       </Card>
 

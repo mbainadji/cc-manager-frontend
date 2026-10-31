@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { PencilLine, AlertCircle, BarChart3, TrendingDown, TrendingUp, FileDown, Search, Info } from 'lucide-react'
+import { PencilLine, AlertCircle, BarChart3, TrendingDown, TrendingUp, FileDown, Search, Info, Loader2 } from 'lucide-react'
 import { Card, PageHeader, StatCard, Badge, Th } from '../components/ui'
 import StatusBadge from '../components/StatusBadge'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../components/ToastContext'
 import api, { errorMessage } from '../api'
 import { STATUS_LABEL, fmtDate } from '../format'
+import { exportCsv, exportExcel, exportPdf } from '../exportGrades'
 
 const ranges = [
   { label: '< 50 %', test: (p) => p < 0.5 },
@@ -19,10 +21,12 @@ const fmtNum = (n) => String(Math.round(n * 100) / 100).replace('.', ',')
 export default function ExamResults() {
   const { id } = useParams()
   const { user } = useAuth()
+  const toast = useToast()
   const [exam, setExam] = useState(null)
   const [grades, setGrades] = useState([])
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
+  const [exporting, setExporting] = useState('') // '', 'pdf' ou 'excel'
 
   useEffect(() => {
     let alive = true
@@ -48,16 +52,17 @@ export default function ExamResults() {
 
   const rows = grades.filter((g) => `${g.matricule} ${g.fullName}`.toLowerCase().includes(q.trim().toLowerCase()))
 
-  const exportCsv = () => {
-    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
-    const lines = [['Matricule', 'Nom', `Note / ${stats.max}`, 'Appréciation'].map(esc).join(';')]
-    grades.forEach((g) => lines.push([g.matricule, g.fullName, g.score ?? '', g.comment].map(esc).join(';')))
-    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `${exam.title.replace(/[^\w-]+/g, '_')}_notes.csv`
-    a.click()
-    URL.revokeObjectURL(a.href)
+  const payload = () => ({ exam, grades, max: stats.max, teacher: `Pr. ${user?.name ?? ''}` })
+
+  const run = async (kind, fn) => {
+    setExporting(kind)
+    try {
+      await fn(payload())
+    } catch {
+      toast('error', "L'export a échoué. Réessayez.")
+    } finally {
+      setExporting('')
+    }
   }
 
   if (error) return <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
@@ -65,6 +70,7 @@ export default function ExamResults() {
 
   const published = exam.status === 'published'
   const maxCount = Math.max(...stats.dist.map((d) => d.count), 1)
+  const exportBtn = 'flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50'
 
   return (
     <>
@@ -90,11 +96,9 @@ export default function ExamResults() {
               : 'Non publié : ces résultats sont consultables par le professeur uniquement.'}
           </p>
         </div>
-        {!published && (
-          <Link to={`/examens/${id}/notes`} className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
-            Saisir ou modifier les notes
-          </Link>
-        )}
+        <Link to={`/examens/${id}/notes`} className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+          {published ? 'Corriger une note' : 'Saisir ou modifier les notes'}
+        </Link>
       </Card>
 
       <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
@@ -126,16 +130,15 @@ export default function ExamResults() {
         <p className="text-[11px] text-slate-400">{grades.length} étudiants · {stats.notes.length} notes enregistrées · {stats.missing} manquantes</p>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={exportCsv} disabled={grades.length === 0}
-            className="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+          <button onClick={() => exportCsv(payload())} disabled={grades.length === 0} className={exportBtn}>
             <FileDown size={12} /> CSV
           </button>
-          {['PDF', 'Excel'].map((f) => (
-            <button key={f} disabled title="Bientôt disponible"
-              className="flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-400 opacity-60">
-              <FileDown size={12} /> {f}
-            </button>
-          ))}
+          <button onClick={() => run('pdf', exportPdf)} disabled={grades.length === 0 || !!exporting} className={exportBtn}>
+            {exporting === 'pdf' ? <Loader2 size={12} className="animate-spin" /> : <FileDown size={12} />} PDF
+          </button>
+          <button onClick={() => run('excel', exportExcel)} disabled={grades.length === 0 || !!exporting} className={exportBtn}>
+            {exporting === 'excel' ? <Loader2 size={12} className="animate-spin" /> : <FileDown size={12} />} Excel
+          </button>
         </div>
 
         <div className="relative mt-3">
