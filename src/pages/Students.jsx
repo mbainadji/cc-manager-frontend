@@ -7,6 +7,7 @@ import Modal from '../components/Modal'
 import { useToast } from '../components/ToastContext'
 import api, { errorMessage } from '../api'
 import { fmtDate } from '../format'
+import { downloadCodes } from '../exportCodes'
 import { readStudentFile } from '../parseStudentList'
 
 const PER_PAGE = 10
@@ -103,11 +104,27 @@ export default function Students() {
     try {
       const { data } = await api.post('/students/import', { students: file.students })
       toast('success', `${data.created} ajouté(s), ${data.updated} mis à jour, ${data.skipped} déjà présent(s)${data.conflicts ? `, ${data.conflicts} conflit(s) : même matricule avec un autre nom (non modifié)` : ''}${data.ignored ? `, ${data.ignored} ignoré(s)` : ''}.`)
+      if (data.codes?.length) downloadCodes(data.codes)
       setBusy(false)
       closeImport()
       await load()
     } catch (err) {
       toast('error', errorMessage(err))
+      setBusy(false)
+    }
+  }
+
+  // ---- Codes d'activation ----
+  const generateCodes = async (regenerate = false) => {
+    setBusy(true)
+    try {
+      const { data } = await api.post('/students/codes', { regenerate })
+      if (!data.count) { toast('success', 'Tous les étudiants ont déjà un code.'); return }
+      downloadCodes(data.codes)
+      toast('success', `${data.count} code(s) généré(s). Le fichier téléchargé est la seule copie : conservez-le.`)
+    } catch (err) {
+      toast('error', errorMessage(err))
+    } finally {
       setBusy(false)
     }
   }
@@ -145,6 +162,18 @@ export default function Students() {
         Seuls les étudiants de cette liste peuvent créer un compte, avec le nom et le matricule indiqués ici.
         « Pas encore inscrit » veut dire que le compte n'est pas créé : vous pouvez déjà saisir sa note, il la verra dès son inscription.
       </Notice>
+
+      <div className="mt-3 flex flex-wrap gap-4 text-xs">
+        <button onClick={() => generateCodes(false)} disabled={busy}
+          className="font-medium text-primary hover:underline disabled:opacity-50">
+          Générer les codes manquants
+        </button>
+        <button disabled={busy}
+          onClick={() => window.confirm('Remplacer les codes des étudiants qui n\'ont pas encore de compte ? Les anciens codes ne fonctionneront plus.') && generateCodes(true)}
+          className="font-medium text-slate-500 hover:underline disabled:opacity-50">
+          Régénérer les codes (étudiants sans compte)
+        </button>
+      </div>
 
       {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
