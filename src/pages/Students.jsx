@@ -104,7 +104,7 @@ export default function Students() {
     setBusy(true)
     try {
       const { data } = await api.post('/students/import', { students: file.students })
-      toast('success', `${data.created} ajouté(s), ${data.updated} mis à jour, ${data.skipped} déjà présent(s)${data.ignored ? `, ${data.ignored} ignoré(s)` : ''}.`)
+      toast('success', `${data.created} ajouté(s), ${data.updated} mis à jour, ${data.skipped} déjà présent(s)${data.conflicts ? `, ${data.conflicts} conflit(s) : même matricule avec un autre nom (non modifié)` : ''}${data.ignored ? `, ${data.ignored} ignoré(s)` : ''}.`)
       setBusy(false)
       closeImport()
       await load()
@@ -198,6 +198,7 @@ export default function Students() {
                     Nom et prénom <ArrowUpDown size={11} />
                   </button>
                 </Th>
+                <Th>Groupe</Th>
                 <Th>Inscription</Th>
                 <Th>Examens associés</Th>
                 {currentExam && <Th>Note</Th>}
@@ -209,6 +210,7 @@ export default function Students() {
                 <tr key={s.id} className="hover:bg-slate-50">
                   <td className="px-3 py-3 text-slate-500">{s.matricule}</td>
                   <td className="px-3 py-3 font-medium text-slate-800">{s.fullName}</td>
+                  <td className="px-3 py-3 text-slate-500">{s.group || '—'}</td>
                   <td className="px-3 py-3">
                     {s.registered
                       ? <Badge tone="green">Inscrit</Badge>
@@ -248,9 +250,9 @@ export default function Students() {
                   </td>
                 </tr>
               ))}
-              {students === null && <tr><td colSpan={currentExam ? 6 : 5} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>}
+              {students === null && <tr><td colSpan={currentExam ? 7 : 6} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>}
               {students !== null && rows.length === 0 && (
-                <tr><td colSpan={currentExam ? 6 : 5} className="px-3 py-10 text-center text-slate-400">
+                <tr><td colSpan={currentExam ? 7 : 6} className="px-3 py-10 text-center text-slate-400">
                   {students.length === 0
                     ? "La liste est vide. Importez un fichier pour que les étudiants puissent s'inscrire."
                     : 'Aucun étudiant ne correspond à votre recherche.'}
@@ -268,7 +270,7 @@ export default function Students() {
         <p>
           Choisissez un fichier <strong>Excel (.xlsx)</strong> ou <strong>CSV</strong> depuis votre ordinateur ou votre téléphone.
           Il doit contenir une colonne <strong>Matricule</strong> et une ou plusieurs colonnes de nom
-          (<strong>Nom</strong>, <strong>Prénom</strong>, ou <strong>Nom complet</strong>).
+          (<strong>Nom</strong>, <strong>Prénom</strong>, ou <strong>Nom complet</strong>), plus une colonne <strong>Groupe</strong>.
         </p>
 
         <label className="mt-4 flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center hover:bg-slate-100">
@@ -293,14 +295,19 @@ export default function Students() {
                 Pas d'en-tête « Matricule » / « Nom » détecté : la 1re colonne est lue comme matricule et la 2e comme nom. Vérifiez l'aperçu.
               </p>
             )}
+            {!file.hasGroup && (
+              <p className="mt-1 text-[11px] text-orange-600">
+                Aucune colonne « Groupe » détectée : ces étudiants n'auront pas de groupe et ne pourront pas s'inscrire.
+              </p>
+            )}
             <div className="mt-2 max-h-48 overflow-y-auto rounded-md border border-slate-200">
               <table className="w-full text-[11px]">
                 <thead className="sticky top-0 bg-slate-50 text-left text-slate-500">
-                  <tr><th className="px-3 py-1.5 font-medium">Matricule</th><th className="px-3 py-1.5 font-medium">Nom</th></tr>
+                  <tr><th className="px-3 py-1.5 font-medium">Matricule</th><th className="px-3 py-1.5 font-medium">Nom</th><th className="px-3 py-1.5 font-medium">Groupe</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {file.students.slice(0, 8).map((s, i) => (
-                    <tr key={i}><td className="px-3 py-1.5 text-slate-500">{s.matricule}</td><td className="px-3 py-1.5 text-slate-800">{s.fullName}</td></tr>
+                    <tr key={i}><td className="px-3 py-1.5 text-slate-500">{s.matricule}</td><td className="px-3 py-1.5 text-slate-800">{s.fullName}</td><td className="px-3 py-1.5 text-slate-500">{s.group || '—'}</td></tr>
                   ))}
                 </tbody>
               </table>

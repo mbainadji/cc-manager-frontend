@@ -58,12 +58,14 @@ export function extractStudents(table) {
 
   const head = rows[0].map(norm)
   const mIdx = head.findIndex((h) => h.includes('matricule'))
-  const nameIdx = head.map((h, i) => (i !== mIdx && /nom|name|prenom|etudiant/.test(h) ? i : -1)).filter((i) => i >= 0)
+  const gIdx = head.findIndex((h) => /group/.test(h))
+  const nameIdx = head.map((h, i) => (i !== mIdx && i !== gIdx && /nom|name|prenom|etudiant/.test(h) ? i : -1)).filter((i) => i >= 0)
   const headerFound = mIdx !== -1 && nameIdx.length > 0
 
   const body = headerFound ? rows.slice(1) : rows
   const mCol = headerFound ? mIdx : 0
   const nCols = headerFound ? nameIdx : [1]
+  const gCol = headerFound ? gIdx : 2
 
   const students = []
   let ignored = 0
@@ -71,9 +73,10 @@ export function extractStudents(table) {
     const matricule = r[mCol] ?? ''
     const fullName = nCols.map((i) => r[i] ?? '').join(' ').replace(/\s+/g, ' ').trim()
     if (!matricule || !fullName) { ignored++; continue }
-    students.push({ matricule, fullName })
+    const group = gCol >= 0 ? (r[gCol] ?? '').replace(/\s+/g, ' ').trim() : ''
+    students.push({ matricule, fullName, group })
   }
-  return { students, ignored, headerFound }
+  return { students, ignored, headerFound, hasGroup: students.some((s) => s.group) }
 }
 
 export async function readStudentFile(file) {

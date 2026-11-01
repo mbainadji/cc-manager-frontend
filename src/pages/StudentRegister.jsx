@@ -10,7 +10,7 @@ const input =
 export default function StudentRegister() {
   const toast = useToast()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ fullName: '', matricule: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ fullName: '', matricule: '', group: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -26,6 +26,7 @@ export default function StudentRegister() {
       await api.post('/auth/student/register', {
         fullName: form.fullName.trim(),
         matricule: form.matricule.trim(),
+        group: form.group.trim(),
         password: form.password,
       })
       toast('success', 'Compte créé. Vous pouvez vous connecter.')
@@ -50,6 +51,9 @@ export default function StudentRegister() {
 
         <label className="mt-4 block text-xs font-medium text-slate-600">Matricule</label>
         <input className={`${input} mt-1`} value={form.matricule} onChange={set('matricule')} required />
+
+        <label className="mt-4 block text-xs font-medium text-slate-600">Groupe</label>
+        <input className={`${input} mt-1`} value={form.group} onChange={set('group')} required />
 
         <label className="mt-4 block text-xs font-medium text-slate-600">Mot de passe</label>
         <input type="password" className={`${input} mt-1`} value={form.password} onChange={set('password')} required autoComplete="new-password" />
