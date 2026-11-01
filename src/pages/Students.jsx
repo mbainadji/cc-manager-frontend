@@ -26,8 +26,6 @@ export default function Students() {
   const [page, setPage] = useState(1)
   const [grades, setGrades] = useState({}) // studentId -> { score, comment }
 
-  const [resetTarget, setResetTarget] = useState(null)
-  const [tempPassword, setTempPassword] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [busy, setBusy] = useState(false)
 
@@ -112,26 +110,6 @@ export default function Students() {
       toast('error', errorMessage(err))
       setBusy(false)
     }
-  }
-
-  // ---- Mot de passe provisoire ----
-  const resetPassword = async () => {
-    setBusy(true)
-    try {
-      const { data } = await api.post(`/students/${resetTarget.id}/reset-password`)
-      setTempPassword(data.password)
-    } catch (err) {
-      toast('error', errorMessage(err))
-      setResetTarget(null)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const closeReset = () => {
-    if (busy) return
-    setResetTarget(null)
-    setTempPassword('')
   }
 
   // ---- Suppression (étudiant sans compte) ----
@@ -239,9 +217,7 @@ export default function Students() {
                       </Link>
                     )}
                     {s.registered ? (
-                      <button onClick={() => setResetTarget(s)} className="font-medium text-primary hover:underline">
-                        Réinitialiser le mot de passe
-                      </button>
+                      <span className="text-slate-400">—</span>
                     ) : (
                       <button onClick={() => setDeleteTarget(s)} className="font-medium text-red-600 hover:underline">
                         Supprimer
@@ -315,19 +291,6 @@ export default function Students() {
             {file.students.length > 8 && <p className="mt-1 text-[10px] text-slate-400">… et {file.students.length - 8} autre(s).</p>}
             <p className="mt-2 text-[11px] text-slate-500">Un matricule déjà inscrit n'est pas modifié.</p>
           </div>
-        )}
-      </Modal>
-
-      <Modal open={!!resetTarget} title="Réinitialiser le mot de passe ?"
-        confirmLabel={tempPassword ? 'Fermer' : 'Réinitialiser'}
-        onConfirm={tempPassword ? closeReset : resetPassword} onClose={closeReset} loading={busy}>
-        {tempPassword ? (
-          <>
-            Nouveau mot de passe de {resetTarget?.fullName} : <strong className="select-all font-mono">{tempPassword}</strong>.
-            Notez-le maintenant, il ne sera plus affiché. L'étudiant pourra le changer dans « Profil et paramètres ».
-          </>
-        ) : (
-          <>Un mot de passe provisoire sera généré pour {resetTarget?.fullName}. L'ancien ne fonctionnera plus.</>
         )}
       </Modal>
 
