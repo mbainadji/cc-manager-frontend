@@ -34,6 +34,7 @@ export default function Students() {
   const [file, setFile] = useState(null) // { name, students, ignored, headerFound }
   const [fileError, setFileError] = useState('')
   const [reading, setReading] = useState(false)
+  const [conflicts, setConflicts] = useState([])
 
   const load = () =>
     Promise.all([api.get('/students'), api.get('/exams')])
@@ -105,6 +106,7 @@ export default function Students() {
       const { data } = await api.post('/students/import', { students: file.students })
       toast('success', `${data.created} ajouté(s), ${data.updated} mis à jour, ${data.skipped} déjà présent(s)${data.conflicts ? `, ${data.conflicts} conflit(s) : même matricule avec un autre nom (non modifié)` : ''}${data.ignored ? `, ${data.ignored} ignoré(s)` : ''}.`)
       if (data.codes?.length) downloadCodes(data.codes)
+      if (data.conflictList?.length) setConflicts(data.conflictList)
       setBusy(false)
       closeImport()
       await load()
@@ -321,6 +323,31 @@ export default function Students() {
             <p className="mt-2 text-[11px] text-slate-500">Un matricule déjà inscrit n'est pas modifié.</p>
           </div>
         )}
+      </Modal>
+
+      <Modal open={conflicts.length > 0} title="Conflits d'import" confirmLabel="Fermer"
+        onConfirm={() => setConflicts([])} onClose={() => setConflicts([])}>
+        <p>Ces matricules existent déjà avec un autre nom. Rien n'a été modifié : corrigez-les à la main.</p>
+        <div className="mt-3 max-h-56 overflow-y-auto rounded-md border border-slate-200">
+          <table className="w-full text-[11px]">
+            <thead className="sticky top-0 bg-slate-50 text-left text-slate-500">
+              <tr>
+                <th className="px-3 py-1.5 font-medium">Matricule</th>
+                <th className="px-3 py-1.5 font-medium">Dans le fichier</th>
+                <th className="px-3 py-1.5 font-medium">Dans la base</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {conflicts.map((c) => (
+                <tr key={c.matricule}>
+                  <td className="px-3 py-1.5 text-slate-500">{c.matricule}</td>
+                  <td className="px-3 py-1.5 text-slate-800">{c.fileName}</td>
+                  <td className="px-3 py-1.5 text-slate-800">{c.dbName}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Modal>
 
       <Modal open={!!deleteTarget} title="Supprimer cet étudiant de la liste ?" confirmLabel="Supprimer"

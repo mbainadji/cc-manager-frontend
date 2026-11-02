@@ -89,6 +89,9 @@ export default function Login() {
           <span className="h-px flex-1 bg-slate-200" /> Nouveau sur CC Manager ? <span className="h-px flex-1 bg-slate-200" />
         </div>
 
+        <Link to="/mot-de-passe-oublie" className="mb-3 block text-center text-xs font-medium text-primary hover:underline">
+          Mot de passe oublié ?
+        </Link>
         <Link to="/inscription" className="block w-full rounded-md border border-slate-200 py-2.5 text-center text-sm font-medium text-primary hover:bg-slate-50">
           Activer mon compte étudiant
         </Link>

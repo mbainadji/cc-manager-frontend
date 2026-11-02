@@ -13,6 +13,7 @@ export default function StudentRegister() {
   const [form, setForm] = useState({ fullName: '', matricule: '', group: '', code: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [recovery, setRecovery] = useState('')
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
 
@@ -23,20 +24,39 @@ export default function StudentRegister() {
     if (form.password !== form.confirm) return setError('Les deux mots de passe ne sont pas identiques.')
     setBusy(true)
     try {
-      await api.post('/auth/student/register', {
+      const { data } = await api.post('/auth/student/register', {
         fullName: form.fullName.trim(),
         matricule: form.matricule.trim(),
         group: form.group.trim(),
         code: form.code.trim(),
         password: form.password,
       })
-      toast('success', 'Compte créé. Vous pouvez vous connecter.')
-      navigate('/')
+      toast('success', 'Compte créé.')
+      setRecovery(data.recoveryCode)
     } catch (err) {
       setError(errorMessage(err))
     } finally {
       setBusy(false)
     }
+  }
+
+  if (recovery) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-lg font-semibold text-slate-800">Compte créé</h1>
+          <p className="mt-2 text-xs text-slate-500">
+            Voici votre code de récupération. Il vous servira à choisir un nouveau mot de passe si vous l'oubliez.
+            Notez-le maintenant : il ne sera plus affiché, et votre enseignant ne le connaît pas.
+          </p>
+          <p className="mt-4 select-all rounded-md bg-slate-50 py-3 text-center font-mono text-xl font-semibold tracking-wider text-slate-800">{recovery}</p>
+          <button onClick={() => navigate('/')}
+            className="mt-5 w-full rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
+            J'ai noté mon code, me connecter
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

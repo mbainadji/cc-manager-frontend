@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 import Login from './pages/Login'
 import StudentRegister from './pages/StudentRegister'
+import ForgotPassword from './pages/ForgotPassword'
 import ProfessorLogin from './pages/ProfessorLogin'
 import Dashboard from './pages/Dashboard'
 import ExamsList from './pages/ExamsList'
@@ -24,6 +25,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/inscription" element={<StudentRegister />} />
+            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
             <Route path="/professeur" element={<ProfessorLogin />} />
 
             <Route element={<ProtectedRoute />}>
