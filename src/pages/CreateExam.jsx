@@ -15,7 +15,7 @@ export default function CreateExam() {
   const [everyone, setEveryone] = useState(true)
   const [selected, setSelected] = useState(new Set())
   const [q, setQ] = useState('')
-  const [form, setForm] = useState({ title: '', subject: '', date: '', max: 20, description: '' })
+  const [form, setForm] = useState({ title: '', subject: '', date: '', max: 20, coef: 1, description: '' })
   const [published, setPublished] = useState(false)
   const [loading, setLoading] = useState(editing)
   const [error, setError] = useState('')
@@ -32,7 +32,7 @@ export default function CreateExam() {
         if (e) {
           const x = e.data
           setForm({
-            title: x.title, subject: x.subject, max: x.maxScore, description: x.description || '',
+            title: x.title, subject: x.subject, max: x.maxScore, coef: x.coefficient ?? 1, description: x.description || '',
             date: new Date(x.date).toISOString().slice(0, 10),
           })
           setEveryone(x.allStudents)
@@ -62,6 +62,7 @@ export default function CreateExam() {
     setError('')
     if (!form.title.trim() || !form.subject.trim() || !form.date) return setError('Le titre, la matière et la date sont requis.')
     if (!(Number(form.max) >= 1)) return setError('Le barème doit être supérieur ou égal à 1.')
+    if (!(Number(form.coef) > 0)) return setError('Le coefficient doit être supérieur à 0.')
     if (!everyone && selected.size === 0) return setError('Sélectionnez au moins un étudiant.')
 
     const body = {
@@ -71,6 +72,7 @@ export default function CreateExam() {
       description: form.description,
       ...(published ? {} : {
         maxScore: Number(form.max),
+        coefficient: Number(form.coef),
         allStudents: everyone,
         students: everyone ? [] : [...selected],
       }),
@@ -116,6 +118,7 @@ export default function CreateExam() {
             <div className="grid grid-cols-2 gap-3">
               <div><label className={label}>Date de l'examen *</label><input type="date" className={input} value={form.date} onChange={set('date')} /></div>
               <div><label className={label}>Barème maximal *</label><input type="number" min="1" className={input} value={form.max} onChange={set('max')} disabled={published} /></div>
+              <div><label className={label}>Coefficient</label><input type="number" min="0.5" step="0.5" className={input} value={form.coef} onChange={set('coef')} disabled={published} /></div>
             </div>
             <div>
               <label className={label}>Description (facultatif)</label>
@@ -134,12 +137,12 @@ export default function CreateExam() {
 
         <Card>
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Users size={14} className="text-primary" /> Étudiants concernés</h2>
-          <p className="text-[11px] text-slate-400">Les étudiants apparaissent ici dès leur inscription sur la plateforme.</p>
+          <p className="text-[11px] text-slate-400">Les étudiants de la liste importée apparaissent ici, inscrits ou non.</p>
 
           <label className={`mt-4 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs font-medium text-slate-800 ${published ? 'opacity-60' : 'cursor-pointer'}`}>
             <input type="checkbox" checked={everyone} disabled={published} onChange={(e) => setEveryone(e.target.checked)} />
             <span>
-              Tous les étudiants inscrits ({students?.length ?? 0})
+              Tous les étudiants de la liste ({students?.length ?? 0})
               <span className="block text-[10px] font-normal text-slate-400">Les étudiants qui s'inscrivent plus tard seront inclus automatiquement.</span>
             </span>
           </label>
@@ -156,7 +159,7 @@ export default function CreateExam() {
                   <input type="checkbox" checked={allChecked} disabled={published} onChange={toggleAll} /> Tout sélectionner ({visible.length})
                 </label>
                 {students === null && <p className="px-3 py-6 text-center text-xs text-slate-400">Chargement…</p>}
-                {students !== null && visible.length === 0 && <p className="px-3 py-6 text-center text-xs text-slate-400">Aucun étudiant inscrit pour le moment.</p>}
+                {students !== null && visible.length === 0 && <p className="px-3 py-6 text-center text-xs text-slate-400">Aucun étudiant dans la liste pour le moment.</p>}
                 {visible.map((s) => (
                   <label key={s.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50">
                     <input type="checkbox" checked={selected.has(s.id)} disabled={published} onChange={() => toggle(s.id)} />

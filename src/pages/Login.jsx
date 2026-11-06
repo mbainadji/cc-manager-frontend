@@ -65,10 +65,7 @@ export default function Login() {
           />
 
           <div className="flex items-center justify-between text-xs">
-            <label className="flex items-center gap-2 text-slate-600">
-              <input type="checkbox" {...register('remember')} className="rounded border-slate-300" />
-              Se souvenir de moi
-            </label>
+            <span />
           </div>
 
           {errors.root?.server && (

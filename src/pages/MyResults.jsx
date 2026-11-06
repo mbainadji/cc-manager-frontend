@@ -40,9 +40,9 @@ export default function MyResults() {
   const months = useMemo(() => [...new Set(all.map((r) => monthKey(r.date)))].sort().reverse(), [all])
   const results = period === 'all' ? all : all.filter((r) => monthKey(r.date) === period)
 
-  // Moyenne ramenée sur 20, sans coefficient
+  // Moyenne ramenée sur 20, pondérée par les coefficients
   const average = results.length
-    ? results.reduce((sum, r) => sum + (r.score / r.max) * 20, 0) / results.length
+    ? results.reduce((sum, r) => sum + (r.score / r.max) * 20 * (r.coef ?? 1), 0) / results.reduce((sum, r) => sum + (r.coef ?? 1), 0)
     : null
 
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
@@ -78,7 +78,7 @@ export default function MyResults() {
               <span className="rounded-md bg-green-50 p-2 text-green-600"><BarChart3 size={16} /></span>
               <div>
                 <p className="text-sm font-semibold text-slate-900">{average === null ? '—' : `${fmtNum(average)} / 20`}</p>
-                <p className="text-[11px] text-slate-400">Moyenne générale (sans coefficient)</p>
+                <p className="text-[11px] text-slate-400">Moyenne générale pondérée par les coefficients</p>
               </div>
             </Card>
           </div>
