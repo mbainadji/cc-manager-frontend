@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthProvider'
 import { ToastProvider } from './components/Toast'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -13,48 +13,57 @@ import CreateExam from './pages/CreateExam'
 import GradeEntry from './pages/GradeEntry'
 import ExamResults from './pages/ExamResults'
 import Students from './pages/Students'
+import Professors from './pages/Professors'
 import MyResults from './pages/MyResults'
 import ResultDetail from './pages/ResultDetail'
 import Profile from './pages/Profile'
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/inscription" element={<StudentRegister />} />
+      <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
+      <Route path="/professeur" element={<ProfessorLogin />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/profil" element={<Profile />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute role="student" />}>
+        <Route element={<AppLayout role="student" />}>
+          <Route path="/resultats" element={<MyResults />} />
+          <Route path="/resultats/:id" element={<ResultDetail />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute role="professor" />}>
+        <Route element={<AppLayout role="professor" />}>
+          <Route path="/tableau-de-bord" element={<Dashboard />} />
+          <Route path="/examens" element={<ExamsList />} />
+          <Route path="/examens/nouveau" element={<CreateExam />} />
+          <Route path="/examens/:id/modifier" element={<CreateExam />} />
+          <Route path="/examens/:id/notes" element={<GradeEntry />} />
+          <Route path="/examens/:id/resultats" element={<ExamResults />} />
+          <Route path="/etudiants" element={<Students />} />
+          <Route path="/professeurs" element={<Professors />} />
+          <Route path="/resultats-publies" element={<ExamsList onlyPublished />} />
+        </Route>
+      </Route>
+    </Routes>
+  )
+}
+
+// Routeur « data » : nécessaire pour useBlocker (avertissement avant de quitter une page)
+const router = createBrowserRouter([{ path: '*', element: <AppRoutes /> }])
 
 export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/inscription" element={<StudentRegister />} />
-            <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
-            <Route path="/professeur" element={<ProfessorLogin />} />
-
-            <Route element={<ProtectedRoute />}>
-              <Route element={<AppLayout />}>
-                <Route path="/profil" element={<Profile />} />
-              </Route>
-            </Route>
-
-            <Route element={<ProtectedRoute role="student" />}>
-              <Route element={<AppLayout role="student" />}>
-                <Route path="/resultats" element={<MyResults />} />
-                <Route path="/resultats/:id" element={<ResultDetail />} />
-              </Route>
-            </Route>
-
-            <Route element={<ProtectedRoute role="professor" />}>
-              <Route element={<AppLayout role="professor" />}>
-                <Route path="/tableau-de-bord" element={<Dashboard />} />
-                <Route path="/examens" element={<ExamsList />} />
-                <Route path="/examens/nouveau" element={<CreateExam />} />
-                <Route path="/examens/:id/modifier" element={<CreateExam />} />
-                <Route path="/examens/:id/notes" element={<GradeEntry />} />
-                <Route path="/examens/:id/resultats" element={<ExamResults />} />
-                <Route path="/etudiants" element={<Students />} />
-                <Route path="/resultats-publies" element={<ExamsList onlyPublished />} />
-              </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <RouterProvider router={router} />
       </ToastProvider>
     </AuthProvider>
   )
