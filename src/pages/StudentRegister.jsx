@@ -10,7 +10,7 @@ const input =
 export default function StudentRegister() {
   const toast = useToast()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ fullName: '', matricule: '', group: '', code: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ fullName: '', matricule: '', group: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [recovery, setRecovery] = useState('')
@@ -28,7 +28,6 @@ export default function StudentRegister() {
         fullName: form.fullName.trim(),
         matricule: form.matricule.trim(),
         group: form.group.trim(),
-        code: form.code.trim(),
         password: form.password,
       })
       toast('success', 'Compte créé.')
@@ -64,7 +63,7 @@ export default function StudentRegister() {
       <form onSubmit={submit} className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-lg font-semibold text-slate-800">Activer mon compte étudiant</h1>
         <p className="mt-1 text-xs text-slate-500">
-          Utilisez le nom, le matricule et le groupe de la liste de votre professeur, avec le code d'activation qui vous a été remis.
+          Utilisez le nom, le matricule et le groupe figurant sur la liste de votre professeur.
         </p>
 
         <label className="mt-5 block text-xs font-medium text-slate-600">Nom complet</label>
@@ -76,8 +75,7 @@ export default function StudentRegister() {
         <label className="mt-4 block text-xs font-medium text-slate-600">Groupe</label>
         <input className={`${input} mt-1`} value={form.group} onChange={set('group')} required />
 
-        <label className="mt-4 block text-xs font-medium text-slate-600">Code d'activation</label>
-        <input className={`${input} mt-1 font-mono uppercase`} value={form.code} onChange={set('code')} required placeholder="XXXX-XXXX" autoComplete="off" />
+
 
         <label className="mt-4 block text-xs font-medium text-slate-600">Mot de passe</label>
         <input type="password" className={`${input} mt-1`} value={form.password} onChange={set('password')} required autoComplete="new-password" />
