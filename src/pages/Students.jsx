@@ -5,6 +5,7 @@ import { Card, PageHeader, Notice, Badge, Th } from '../components/ui'
 import Pager from '../components/Pager'
 import Modal from '../components/Modal'
 import { useToast } from '../components/ToastContext'
+import useMediaQuery from '../useMediaQuery'
 import api, { errorMessage } from '../api'
 import { fmtDate } from '../format'
 import { readStudentFile } from '../parseStudentList'
@@ -12,10 +13,12 @@ import { readStudentFile } from '../parseStudentList'
 const PER_PAGE = 10
 const MAX_ROWS = 2000
 const MAX_FILE = 5 * 1024 * 1024
-const select = 'rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600'
+const select = 'min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 sm:min-h-0 sm:w-auto'
+const cardAction = 'flex min-h-10 flex-1 items-center justify-center rounded-md border px-3 text-xs font-medium'
 
 export default function Students() {
   const toast = useToast()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const [students, setStudents] = useState(null) // null = chargement
   const [exams, setExams] = useState([])
   const [error, setError] = useState('')
@@ -129,6 +132,21 @@ export default function Students() {
     }
   }
 
+  const examsLabel = (s) =>
+    s.examIds.length === 0 ? '—' : (
+      <>
+        {titleOf(s.examIds[0])}
+        {s.examIds.length > 1 && <span className="text-slate-400"> +{s.examIds.length - 1}</span>}
+      </>
+    )
+  const noteLabel = (s) =>
+    grades[s.id]?.score != null
+      ? <span className="font-medium text-slate-800">{grades[s.id].score}/{currentExam.maxScore}</span>
+      : <span className="text-slate-400">À saisir</span>
+  const emptyText = students?.length === 0
+    ? "La liste est vide. Importez un fichier pour que les étudiants puissent s'inscrire."
+    : 'Aucun étudiant ne correspond à votre recherche.'
+
   return (
     <>
       <PageHeader
@@ -137,7 +155,7 @@ export default function Students() {
         subtitle={`${students?.length ?? 0} étudiants dans la liste · ${registeredCount} inscrits sur la plateforme`}
         actions={
           <button onClick={() => setImportOpen(true)}
-            className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-blue-700">
+            className="flex min-h-11 items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-blue-700 sm:min-h-0">
             <Upload size={14} /> Importer une liste
           </button>
         }
@@ -151,11 +169,11 @@ export default function Students() {
       {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
       <Card className="mt-4">
-        <div className="flex flex-wrap gap-3">
-          <div className="relative min-w-52 flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="relative min-w-0 sm:min-w-52 sm:flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={onChange(setQ)} placeholder="Rechercher par matricule ou par nom"
-              className="w-full rounded-md border border-slate-200 py-2.5 pl-8 pr-3 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+              className="min-h-11 w-full rounded-md border border-slate-200 py-2.5 pl-8 pr-3 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 sm:min-h-0" />
           </div>
           <select value={reg} onChange={onChange(setReg)} className={select}>
             <option value="all">Toutes les inscriptions</option>
@@ -166,79 +184,105 @@ export default function Students() {
             <option value="all">Tous les examens</option>
             {exams.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
           </select>
+          {!isDesktop && (
+            <button onClick={() => setAsc(!asc)}
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-md border border-slate-200 px-3 text-xs font-medium text-slate-600">
+              <ArrowUpDown size={14} /> Nom {asc ? 'A → Z' : 'Z → A'}
+            </button>
+          )}
         </div>
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[760px] text-xs">
-            <thead className="border-b border-slate-100">
-              <tr>
-                <Th>Matricule</Th>
-                <Th>
-                  <button onClick={() => setAsc(!asc)} className="flex items-center gap-1 uppercase">
-                    Nom et prénom <ArrowUpDown size={11} />
-                  </button>
-                </Th>
-                <Th>Groupe</Th>
-                <Th>Inscription</Th>
-                <Th>Examens associés</Th>
-                {currentExam && <Th>Note</Th>}
-                <Th>Action</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((s) => (
-                <tr key={s.id} className="hover:bg-slate-50">
-                  <td className="px-3 py-3 text-slate-500">{s.matricule}</td>
-                  <td className="px-3 py-3 font-medium text-slate-800">{s.fullName}</td>
-                  <td className="px-3 py-3 text-slate-500">{s.group || '—'}</td>
-                  <td className="px-3 py-3">
-                    {s.registered
-                      ? <Badge tone="green">Inscrit</Badge>
-                      : <Badge tone="slate">Pas encore inscrit</Badge>}
-                    {s.registered && <p className="mt-1 text-[10px] text-slate-400">le {fmtDate(s.createdAt)}</p>}
-                  </td>
-                  <td className="px-3 py-3 text-slate-600">
-                    {s.examIds.length === 0 ? '—' : (
-                      <>
-                        {titleOf(s.examIds[0])}
-                        {s.examIds.length > 1 && <span className="text-slate-400"> +{s.examIds.length - 1}</span>}
-                      </>
-                    )}
-                  </td>
-                  {currentExam && (
-                    <td className="px-3 py-3">
-                      {grades[s.id]?.score != null
-                        ? <span className="font-medium text-slate-800">{grades[s.id].score}/{currentExam.maxScore}</span>
-                        : <span className="text-slate-400">À saisir</span>}
-                    </td>
-                  )}
-                  <td className="px-3 py-3">
-                    {currentExam && (
-                      <Link to={`/examens/${examId}/notes`} className="mr-4 font-medium text-primary hover:underline">
-                        Modifier la note
-                      </Link>
-                    )}
-                    {s.registered ? (
-                      <span className="text-slate-400">—</span>
-                    ) : (
-                      <button onClick={() => setDeleteTarget(s)} className="font-medium text-red-600 hover:underline">
-                        Supprimer
-                      </button>
-                    )}
-                  </td>
+        {isDesktop ? (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-xs">
+              <thead className="border-b border-slate-100">
+                <tr>
+                  <Th>Matricule</Th>
+                  <Th>
+                    <button onClick={() => setAsc(!asc)} className="flex items-center gap-1 uppercase">
+                      Nom et prénom <ArrowUpDown size={11} />
+                    </button>
+                  </Th>
+                  <Th>Groupe</Th>
+                  <Th>Inscription</Th>
+                  <Th>Examens associés</Th>
+                  {currentExam && <Th>Note</Th>}
+                  <Th>Action</Th>
                 </tr>
-              ))}
-              {students === null && <tr><td colSpan={currentExam ? 7 : 6} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>}
-              {students !== null && rows.length === 0 && (
-                <tr><td colSpan={currentExam ? 7 : 6} className="px-3 py-10 text-center text-slate-400">
-                  {students.length === 0
-                    ? "La liste est vide. Importez un fichier pour que les étudiants puissent s'inscrire."
-                    : 'Aucun étudiant ne correspond à votre recherche.'}
-                </td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {rows.map((s) => (
+                  <tr key={s.id} className="hover:bg-slate-50">
+                    <td className="px-3 py-3 text-slate-500">{s.matricule}</td>
+                    <td className="px-3 py-3 font-medium text-slate-800">{s.fullName}</td>
+                    <td className="px-3 py-3 text-slate-500">{s.group || '—'}</td>
+                    <td className="px-3 py-3">
+                      {s.registered
+                        ? <Badge tone="green">Inscrit</Badge>
+                        : <Badge tone="slate">Pas encore inscrit</Badge>}
+                      {s.registered && <p className="mt-1 text-[10px] text-slate-400">le {fmtDate(s.createdAt)}</p>}
+                    </td>
+                    <td className="px-3 py-3 text-slate-600">{examsLabel(s)}</td>
+                    {currentExam && <td className="px-3 py-3">{noteLabel(s)}</td>}
+                    <td className="px-3 py-3">
+                      {currentExam && (
+                        <Link to={`/examens/${examId}/notes`} className="mr-4 font-medium text-primary hover:underline">
+                          Modifier la note
+                        </Link>
+                      )}
+                      {s.registered ? (
+                        <span className="text-slate-400">—</span>
+                      ) : (
+                        <button onClick={() => setDeleteTarget(s)} className="font-medium text-red-600 hover:underline">
+                          Supprimer
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {students === null && <tr><td colSpan={currentExam ? 7 : 6} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>}
+                {students !== null && rows.length === 0 && (
+                  <tr><td colSpan={currentExam ? 7 : 6} className="px-3 py-10 text-center text-slate-400">{emptyText}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {students === null && <li className="py-10 text-center text-xs text-slate-400">Chargement…</li>}
+            {students !== null && rows.length === 0 && <li className="py-10 text-center text-xs text-slate-400">{emptyText}</li>}
+            {rows.map((s) => (
+              <li key={s.id} className="rounded-lg border border-slate-200 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-medium text-slate-800">{s.fullName}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">{s.matricule} · Groupe : {s.group || '—'}</p>
+                  </div>
+                  {s.registered ? <Badge tone="green">Inscrit</Badge> : <Badge tone="slate">Pas inscrit</Badge>}
+                </div>
+                <dl className="mt-2 space-y-1 text-[11px] text-slate-500">
+                  {s.registered && (
+                    <div className="flex justify-between gap-2"><dt>Inscrit le</dt><dd>{fmtDate(s.createdAt)}</dd></div>
+                  )}
+                  <div className="flex justify-between gap-2">
+                    <dt>Examens</dt><dd className="min-w-0 truncate text-right text-slate-600">{examsLabel(s)}</dd>
+                  </div>
+                  {currentExam && <div className="flex justify-between gap-2"><dt>Note</dt><dd>{noteLabel(s)}</dd></div>}
+                </dl>
+                {(currentExam || !s.registered) && (
+                  <div className="mt-3 flex gap-2">
+                    {currentExam && (
+                      <Link to={`/examens/${examId}/notes`} className={`${cardAction} border-primary/30 text-primary`}>Modifier la note</Link>
+                    )}
+                    {!s.registered && (
+                      <button onClick={() => setDeleteTarget(s)} className={`${cardAction} border-red-200 text-red-600`}>Supprimer</button>
+                    )}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
         <Pager page={current} pages={pages} total={list.length} perPage={PER_PAGE} onChange={setPage} />
       </Card>
 
@@ -264,7 +308,7 @@ export default function Students() {
 
         {file && (
           <div className="mt-3">
-            <p className="text-[11px] text-slate-600">
+            <p className="break-words text-[11px] text-slate-600">
               <strong>{file.name}</strong> : {file.students.length} étudiant(s) trouvé(s)
               {file.ignored > 0 && `, ${file.ignored} ligne(s) ignorée(s) (matricule ou nom manquant)`}.
             </p>
@@ -278,8 +322,8 @@ export default function Students() {
                 Aucune colonne « Groupe » détectée : ces étudiants n'auront pas de groupe et ne pourront pas s'inscrire.
               </p>
             )}
-            <div className="mt-2 max-h-48 overflow-y-auto rounded-md border border-slate-200">
-              <table className="w-full text-[11px]">
+            <div className="mt-2 max-h-48 overflow-auto rounded-md border border-slate-200">
+              <table className="w-full min-w-[320px] text-[11px]">
                 <thead className="sticky top-0 bg-slate-50 text-left text-slate-500">
                   <tr><th className="px-3 py-1.5 font-medium">Matricule</th><th className="px-3 py-1.5 font-medium">Nom</th><th className="px-3 py-1.5 font-medium">Groupe</th></tr>
                 </thead>
@@ -299,8 +343,8 @@ export default function Students() {
       <Modal open={conflicts.length > 0} title="Conflits d'import" confirmLabel="Fermer"
         onConfirm={() => setConflicts([])} onClose={() => setConflicts([])}>
         <p>Ces matricules existent déjà avec un autre nom. Rien n'a été modifié : corrigez-les à la main.</p>
-        <div className="mt-3 max-h-56 overflow-y-auto rounded-md border border-slate-200">
-          <table className="w-full text-[11px]">
+        <div className="mt-3 max-h-56 overflow-auto rounded-md border border-slate-200">
+          <table className="w-full min-w-[360px] text-[11px]">
             <thead className="sticky top-0 bg-slate-50 text-left text-slate-500">
               <tr>
                 <th className="px-3 py-1.5 font-medium">Matricule</th>

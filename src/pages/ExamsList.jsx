@@ -6,10 +6,12 @@ import StatusBadge from '../components/StatusBadge'
 import Pager from '../components/Pager'
 import Modal from '../components/Modal'
 import { useToast } from '../components/ToastContext'
+import useMediaQuery from '../useMediaQuery'
 import api, { errorMessage } from '../api'
 import { STATUS_LABEL, fmtDate } from '../format'
 
 const PER_PAGE = 6
+const cardAction = 'flex min-h-10 items-center justify-center rounded-md border px-3 text-xs font-medium'
 
 const toRow = (e) => ({
   id: e.id,
@@ -24,6 +26,7 @@ const toRow = (e) => ({
 export default function ExamsList({ onlyPublished = false }) {
   const flash = useLocation().state?.flash
   const toast = useToast()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const [exams, setExams] = useState(null) // null = chargement
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
@@ -71,7 +74,7 @@ export default function ExamsList({ onlyPublished = false }) {
         title={onlyPublished ? 'Résultats publiés' : 'Mes examens'}
         subtitle={onlyPublished ? 'Les examens dont les notes sont visibles par les étudiants.' : 'Tous vos examens, quel que soit leur statut.'}
         actions={
-          <Link to="/examens/nouveau" className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-blue-700">
+          <Link to="/examens/nouveau" className="flex min-h-11 items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-white hover:bg-blue-700 sm:min-h-0">
             <Plus size={14} /> Créer un examen
           </Link>
         }
@@ -80,15 +83,15 @@ export default function ExamsList({ onlyPublished = false }) {
       {flash && <div className="mb-4"><Notice>{flash}</Notice></div>}
 
       <Card>
-        <div className="flex flex-wrap gap-3">
-          <div className="relative min-w-52 flex-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="relative min-w-0 sm:min-w-52 sm:flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} placeholder="Rechercher par titre ou matière…"
-              className="w-full rounded-md border border-slate-200 py-2.5 pl-8 pr-3 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+              className="min-h-11 w-full rounded-md border border-slate-200 py-2.5 pl-8 pr-3 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 sm:min-h-0" />
           </div>
           {!onlyPublished && (
             <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-              className="rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600">
+              className="min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-600 sm:min-h-0 sm:w-auto">
               <option value="all">Tous les statuts</option>
               <option>Brouillon</option><option>Saisie en cours</option><option>Prêt à publier</option><option>Publié</option>
             </select>
@@ -97,47 +100,82 @@ export default function ExamsList({ onlyPublished = false }) {
 
         {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[760px] text-xs">
-            <thead className="border-b border-slate-100">
-              <tr><Th>Titre de l'examen</Th><Th>Date</Th><Th>Étudiants</Th><Th>Notes saisies</Th><Th>Statut</Th><Th>Action</Th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
-                  <td className="px-3 py-3">
-                    <p className="font-medium text-slate-800">{e.title}</p>
+        {isDesktop ? (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[760px] text-xs">
+              <thead className="border-b border-slate-100">
+                <tr><Th>Titre de l'examen</Th><Th>Date</Th><Th>Étudiants</Th><Th>Notes saisies</Th><Th>Statut</Th><Th>Action</Th></tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {rows.map((e) => (
+                  <tr key={e.id} className="hover:bg-slate-50">
+                    <td className="px-3 py-3">
+                      <p className="font-medium text-slate-800">{e.title}</p>
+                      <p className="text-[11px] text-slate-400">{e.subject}</p>
+                    </td>
+                    <td className="px-3 py-3 text-slate-500">{e.date}</td>
+                    <td className="px-3 py-3 text-slate-500">{e.students}</td>
+                    <td className="px-3 py-3 text-slate-600">{e.graded}/{e.students}</td>
+                    <td className="px-3 py-3"><StatusBadge status={e.status} /></td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        {e.status === 'Publié'
+                          ? <>
+                              <Link to={`/examens/${e.id}/resultats`} className="font-medium text-primary hover:underline">Résultats</Link>
+                              <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Corriger</Link>
+                            </>
+                          : <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Saisir les notes</Link>}
+                        <Link to={`/examens/${e.id}/modifier`} className="font-medium text-slate-600 hover:underline">Modifier</Link>
+                        {e.status !== 'Publié' && (
+                          <button onClick={() => setToDelete(e)} className="font-medium text-red-600 hover:underline">Supprimer</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {exams === null && !error && (
+                  <tr><td colSpan={6} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>
+                )}
+                {exams !== null && rows.length === 0 && (
+                  <tr><td colSpan={6} className="px-3 py-10 text-center text-slate-400">Aucun examen trouvé.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {exams === null && !error && <li className="py-10 text-center text-xs text-slate-400">Chargement…</li>}
+            {exams !== null && rows.length === 0 && <li className="py-10 text-center text-xs text-slate-400">Aucun examen trouvé.</li>}
+            {rows.map((e) => (
+              <li key={e.id} className="rounded-lg border border-slate-200 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-medium text-slate-800">{e.title}</p>
                     <p className="text-[11px] text-slate-400">{e.subject}</p>
-                  </td>
-                  <td className="px-3 py-3 text-slate-500">{e.date}</td>
-                  <td className="px-3 py-3 text-slate-500">{e.students}</td>
-                  <td className="px-3 py-3 text-slate-600">{e.graded}/{e.students}</td>
-                  <td className="px-3 py-3"><StatusBadge status={e.status} /></td>
-                  <td className="px-3 py-3">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      {e.status === 'Publié'
-                        ? <>
-                            <Link to={`/examens/${e.id}/resultats`} className="font-medium text-primary hover:underline">Résultats</Link>
-                            <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Corriger</Link>
-                          </>
-                        : <Link to={`/examens/${e.id}/notes`} className="font-medium text-primary hover:underline">Saisir les notes</Link>}
-                      <Link to={`/examens/${e.id}/modifier`} className="font-medium text-slate-600 hover:underline">Modifier</Link>
-                      {e.status !== 'Publié' && (
-                        <button onClick={() => setToDelete(e)} className="font-medium text-red-600 hover:underline">Supprimer</button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {exams === null && !error && (
-                <tr><td colSpan={6} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>
-              )}
-              {exams !== null && rows.length === 0 && (
-                <tr><td colSpan={6} className="px-3 py-10 text-center text-slate-400">Aucun examen trouvé.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="shrink-0"><StatusBadge status={e.status} /></div>
+                </div>
+                <dl className="mt-2 space-y-1 text-[11px] text-slate-500">
+                  <div className="flex justify-between gap-2"><dt>Date</dt><dd>{e.date}</dd></div>
+                  <div className="flex justify-between gap-2"><dt>Étudiants</dt><dd>{e.students}</dd></div>
+                  <div className="flex justify-between gap-2"><dt>Notes saisies</dt><dd className="text-slate-600">{e.graded}/{e.students}</dd></div>
+                </dl>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {e.status === 'Publié'
+                    ? <>
+                        <Link to={`/examens/${e.id}/resultats`} className={`${cardAction} border-primary/30 text-primary`}>Résultats</Link>
+                        <Link to={`/examens/${e.id}/notes`} className={`${cardAction} border-primary/30 text-primary`}>Corriger</Link>
+                      </>
+                    : <Link to={`/examens/${e.id}/notes`} className={`${cardAction} col-span-2 border-primary/30 text-primary`}>Saisir les notes</Link>}
+                  <Link to={`/examens/${e.id}/modifier`} className={`${cardAction} border-slate-200 text-slate-600`}>Modifier</Link>
+                  {e.status !== 'Publié' && (
+                    <button onClick={() => setToDelete(e)} className={`${cardAction} border-red-200 text-red-600`}>Supprimer</button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
         <Pager page={current} pages={pages} total={list.length} perPage={PER_PAGE} onChange={setPage} />
       </Card>
 

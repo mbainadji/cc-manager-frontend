@@ -5,6 +5,7 @@ import { Card, PageHeader, StatCard, Badge, Th } from '../components/ui'
 import StatusBadge from '../components/StatusBadge'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/ToastContext'
+import useMediaQuery from '../useMediaQuery'
 import api, { errorMessage } from '../api'
 import { STATUS_LABEL, fmtDate } from '../format'
 import { exportCsv, exportExcel, exportPdf } from '../exportGrades'
@@ -22,6 +23,7 @@ export default function ExamResults() {
   const { id } = useParams()
   const { user } = useAuth()
   const toast = useToast()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const [exam, setExam] = useState(null)
   const [grades, setGrades] = useState([])
   const [error, setError] = useState('')
@@ -70,7 +72,12 @@ export default function ExamResults() {
 
   const published = exam.status === 'published'
   const maxCount = Math.max(...stats.dist.map((d) => d.count), 1)
-  const exportBtn = 'flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50'
+  const exportBtn = 'flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 sm:min-h-0'
+  const emptyText = grades.length === 0 ? 'Aucun étudiant inscrit pour le moment.' : 'Aucun étudiant trouvé.'
+  const noteText = (g) =>
+    g.score === null ? <span className="text-orange-600">Non saisie</span> : `${fmtNum(g.score)} / ${stats.max}`
+  const stateBadge = (g) =>
+    g.score === null ? <Badge tone="orange">À compléter</Badge> : <Badge tone="green">Enregistré</Badge>
 
   return (
     <>
@@ -84,7 +91,7 @@ export default function ExamResults() {
 
       <Card>
         <StatusBadge status={STATUS_LABEL[exam.status]} />
-        <h2 className="mt-3 text-lg font-bold text-slate-900">{exam.title}</h2>
+        <h2 className="mt-3 break-words text-lg font-bold text-slate-900">{exam.title}</h2>
         <p className="text-xs text-slate-400">
           {exam.subject} · {fmtDate(exam.date)} · Pr. {user?.name} · Barème sur {stats.max} · {grades.length} étudiants
         </p>
@@ -96,17 +103,20 @@ export default function ExamResults() {
               : 'Non publié : ces résultats sont consultables par le professeur uniquement.'}
           </p>
         </div>
-        <Link to={`/examens/${id}/notes`} className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+        <Link to={`/examens/${id}/notes`}
+          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 sm:inline-flex sm:min-h-0 sm:w-auto">
           {published ? 'Corriger une note' : 'Saisir ou modifier les notes'}
         </Link>
       </Card>
 
-      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         <StatCard icon={PencilLine} value={stats.notes.length} label="Notes enregistrées" hint={`Sur ${grades.length} étudiants`} />
         <StatCard icon={AlertCircle} tone="orange" value={stats.missing} label="Notes manquantes" hint="À compléter" />
         <StatCard icon={BarChart3} value={stats.avg === null ? '—' : `${fmtNum(stats.avg)} / ${stats.max}`} label="Moyenne de la classe" hint={`Sur ${stats.notes.length} notes`} />
         <StatCard icon={TrendingDown} tone="orange" value={stats.min === null ? '—' : `${fmtNum(stats.min)} / ${stats.max}`} label="Note la plus basse" />
-        <StatCard icon={TrendingUp} tone="green" value={stats.top === null ? '—' : `${fmtNum(stats.top)} / ${stats.max}`} label="Note la plus haute" />
+        <div className="col-span-2 sm:col-span-1">
+          <StatCard icon={TrendingUp} tone="green" value={stats.top === null ? '—' : `${fmtNum(stats.top)} / ${stats.max}`} label="Note la plus haute" />
+        </div>
       </div>
 
       <Card className="mt-4">
@@ -115,11 +125,11 @@ export default function ExamResults() {
         <div className="mt-4 space-y-3">
           {stats.dist.map((d) => (
             <div key={d.label} className="flex items-center gap-3 text-[11px]">
-              <span className="w-20 text-slate-500">{d.label}</span>
-              <div className="h-4 flex-1 rounded bg-slate-100">
+              <span className="w-20 shrink-0 text-slate-500">{d.label}</span>
+              <div className="h-4 min-w-0 flex-1 rounded bg-slate-100">
                 <div className="h-4 rounded bg-primary" style={{ width: `${(d.count / maxCount) * 100}%` }} />
               </div>
-              <span className="w-4 text-right font-medium text-slate-700">{d.count}</span>
+              <span className="w-6 shrink-0 text-right font-medium text-slate-700">{d.count}</span>
             </div>
           ))}
         </div>
@@ -129,50 +139,62 @@ export default function ExamResults() {
         <h2 className="text-sm font-semibold text-slate-900">Notes individuelles</h2>
         <p className="text-[11px] text-slate-400">{grades.length} étudiants · {stats.notes.length} notes enregistrées · {stats.missing} manquantes</p>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
           <button onClick={() => exportCsv(payload())} disabled={grades.length === 0} className={exportBtn}>
-            <FileDown size={12} /> CSV
+            <FileDown size={14} /> CSV
           </button>
           <button onClick={() => run('pdf', exportPdf)} disabled={grades.length === 0 || !!exporting} className={exportBtn}>
-            {exporting === 'pdf' ? <Loader2 size={12} className="animate-spin" /> : <FileDown size={12} />} PDF
+            {exporting === 'pdf' ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />} PDF
           </button>
           <button onClick={() => run('excel', exportExcel)} disabled={grades.length === 0 || !!exporting} className={exportBtn}>
-            {exporting === 'excel' ? <Loader2 size={12} className="animate-spin" /> : <FileDown size={12} />} Excel
+            {exporting === 'excel' ? <Loader2 size={14} className="animate-spin" /> : <FileDown size={14} />} Excel
           </button>
         </div>
 
         <div className="relative mt-3">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un étudiant…"
-            className="w-full rounded-md border border-slate-200 py-2 pl-8 pr-3 text-xs outline-none focus:border-primary" />
+            className="min-h-11 w-full rounded-md border border-slate-200 py-2 pl-8 pr-3 text-xs outline-none focus:border-primary sm:min-h-0" />
         </div>
 
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[560px] text-xs">
-            <thead className="border-b border-slate-100">
-              <tr><Th>Matricule</Th><Th>Nom · Prénom</Th><Th>Note / barème</Th><Th>État de saisie</Th></tr>
-            </thead>
-            <tbody>
-              {rows.map((g) => (
-                <tr key={g.studentId} className={`border-b border-slate-100 ${g.score === null ? 'bg-orange-50' : ''}`}>
-                  <td className="px-3 py-2.5 text-slate-500">{g.matricule}</td>
-                  <td className="px-3 py-2.5 font-medium text-slate-800">{g.fullName}</td>
-                  <td className="px-3 py-2.5 text-slate-700">
-                    {g.score === null ? <span className="text-orange-600">Non saisie</span> : `${fmtNum(g.score)} / ${stats.max}`}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    {g.score === null ? <Badge tone="orange">À compléter</Badge> : <Badge tone="green">Enregistré</Badge>}
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 && (
-                <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">
-                  {grades.length === 0 ? 'Aucun étudiant inscrit pour le moment.' : 'Aucun étudiant trouvé.'}
-                </td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {isDesktop ? (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[560px] text-xs">
+              <thead className="border-b border-slate-100">
+                <tr><Th>Matricule</Th><Th>Nom · Prénom</Th><Th>Note / barème</Th><Th>État de saisie</Th></tr>
+              </thead>
+              <tbody>
+                {rows.map((g) => (
+                  <tr key={g.studentId} className={`border-b border-slate-100 ${g.score === null ? 'bg-orange-50' : ''}`}>
+                    <td className="px-3 py-2.5 text-slate-500">{g.matricule}</td>
+                    <td className="px-3 py-2.5 font-medium text-slate-800">{g.fullName}</td>
+                    <td className="px-3 py-2.5 text-slate-700">{noteText(g)}</td>
+                    <td className="px-3 py-2.5">{stateBadge(g)}</td>
+                  </tr>
+                ))}
+                {rows.length === 0 && (
+                  <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">{emptyText}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {rows.map((g) => (
+              <li key={g.studentId} className={`rounded-lg border p-3 ${g.score === null ? 'border-orange-100 bg-orange-50' : 'border-slate-200'}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="break-words text-sm font-medium text-slate-800">{g.fullName}</p>
+                    <p className="text-[11px] text-slate-500">{g.matricule}</p>
+                  </div>
+                  <div className="shrink-0">{stateBadge(g)}</div>
+                </div>
+                <p className="mt-2 text-sm font-semibold text-slate-800">{noteText(g)}</p>
+              </li>
+            ))}
+            {rows.length === 0 && <li className="py-10 text-center text-xs text-slate-400">{emptyText}</li>}
+          </ul>
+        )}
       </Card>
     </>
   )

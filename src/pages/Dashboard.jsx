@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { FileText, Users, PencilLine, CheckCircle2, Plus, Search } from 'lucide-react'
 import { Card, PageHeader, StatCard, Pagination, Th } from '../components/ui'
 import StatusBadge from '../components/StatusBadge'
+import useMediaQuery from '../useMediaQuery'
 import api, { errorMessage } from '../api'
 import { STATUS_LABEL, fmtDate } from '../format'
 
 export default function Dashboard() {
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const [exams, setExams] = useState(null) // null = chargement
   const [studentsCount, setStudentsCount] = useState(0)
   const [error, setError] = useState('')
@@ -35,6 +37,7 @@ export default function Dashboard() {
       `${e.title} ${e.subject}`.toLowerCase().includes(q.toLowerCase())
   )
   const recent = filtered.slice(0, 6)
+  const emptyText = all.length === 0 ? 'Aucun examen pour le moment. Créez votre premier examen.' : 'Aucun examen trouvé.'
 
   return (
     <>
@@ -46,7 +49,7 @@ export default function Dashboard() {
 
       {error && <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={FileText} value={all.length} label="Examens créés" hint="Au total" />
         <StatCard icon={Users} tone="blue" value={studentsCount} label="Étudiants inscrits" hint="Sur la plateforme" />
         <StatCard icon={PencilLine} tone="orange" value={toPublish} label="Examens à publier" hint="Brouillon, saisie ou prêts" />
@@ -54,64 +57,92 @@ export default function Dashboard() {
       </div>
 
       <Card className="mt-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">Examens récents</h2>
             <p className="text-xs text-slate-400">Suivez la saisie et la publication de vos examens.</p>
           </div>
-          <Link to="/examens/nouveau" className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+          <Link to="/examens/nouveau"
+            className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700 sm:min-h-0 sm:w-auto">
             <Plus size={14} /> Créer un examen
           </Link>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <div className="relative min-w-52 flex-1">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="relative min-w-0 sm:min-w-52 sm:flex-1">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher par titre ou matière…"
-              className="w-full rounded-md border border-slate-200 py-2 pl-8 pr-3 text-xs outline-none focus:border-primary" />
+              className="min-h-11 w-full rounded-md border border-slate-200 py-2 pl-8 pr-3 text-xs outline-none focus:border-primary sm:min-h-0" />
           </div>
           <select value={status} onChange={(e) => setStatus(e.target.value)}
-            className="rounded-md border border-slate-200 px-3 py-2 text-xs text-slate-600">
+            className="min-h-11 w-full rounded-md border border-slate-200 px-3 py-2 text-xs text-slate-600 sm:min-h-0 sm:w-auto">
             <option value="all">Tous les statuts</option>
             {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </div>
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[640px] text-xs">
-            <thead className="border-b border-slate-100">
-              <tr><Th>Titre de l'examen</Th><Th>Date</Th><Th>Étudiants</Th><Th>Notes saisies</Th><Th>Statut</Th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {recent.map((e) => {
-                const pct = e.studentsCount ? (e.gradedCount / e.studentsCount) * 100 : 0
-                return (
-                  <tr key={e.id} className="hover:bg-slate-50">
-                    <td className="px-3 py-3">
-                      <Link to={`/examens/${e.id}/resultats`} className="font-medium text-slate-800 hover:text-primary">{e.title}</Link>
+        {isDesktop ? (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[640px] text-xs">
+              <thead className="border-b border-slate-100">
+                <tr><Th>Titre de l'examen</Th><Th>Date</Th><Th>Étudiants</Th><Th>Notes saisies</Th><Th>Statut</Th></tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {recent.map((e) => {
+                  const pct = e.studentsCount ? (e.gradedCount / e.studentsCount) * 100 : 0
+                  return (
+                    <tr key={e.id} className="hover:bg-slate-50">
+                      <td className="px-3 py-3">
+                        <Link to={`/examens/${e.id}/resultats`} className="font-medium text-slate-800 hover:text-primary">{e.title}</Link>
+                        <p className="text-[11px] text-slate-400">{e.subject}</p>
+                      </td>
+                      <td className="px-3 py-3 text-slate-500">{fmtDate(e.date)}</td>
+                      <td className="px-3 py-3 text-slate-500">{e.studentsCount}</td>
+                      <td className="px-3 py-3">
+                        <span className="text-slate-600">{e.gradedCount}/{e.studentsCount}</span>
+                        <div className="mt-1 h-1 w-20 rounded bg-slate-100">
+                          <div className={`h-1 rounded ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </td>
+                      <td className="px-3 py-3"><StatusBadge status={STATUS_LABEL[e.status]} /></td>
+                    </tr>
+                  )
+                })}
+                {exams === null && <tr><td colSpan={5} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>}
+                {exams !== null && recent.length === 0 && (
+                  <tr><td colSpan={5} className="px-3 py-10 text-center text-slate-400">{emptyText}</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {exams === null && <li className="py-10 text-center text-xs text-slate-400">Chargement…</li>}
+            {exams !== null && recent.length === 0 && <li className="py-10 text-center text-xs text-slate-400">{emptyText}</li>}
+            {recent.map((e) => {
+              const pct = e.studentsCount ? (e.gradedCount / e.studentsCount) * 100 : 0
+              return (
+                <li key={e.id} className="rounded-lg border border-slate-200 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <Link to={`/examens/${e.id}/resultats`} className="break-words text-sm font-medium text-slate-800 hover:text-primary">{e.title}</Link>
                       <p className="text-[11px] text-slate-400">{e.subject}</p>
-                    </td>
-                    <td className="px-3 py-3 text-slate-500">{fmtDate(e.date)}</td>
-                    <td className="px-3 py-3 text-slate-500">{e.studentsCount}</td>
-                    <td className="px-3 py-3">
-                      <span className="text-slate-600">{e.gradedCount}/{e.studentsCount}</span>
-                      <div className="mt-1 h-1 w-20 rounded bg-slate-100">
-                        <div className={`h-1 rounded ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
-                      </div>
-                    </td>
-                    <td className="px-3 py-3"><StatusBadge status={STATUS_LABEL[e.status]} /></td>
-                  </tr>
-                )
-              })}
-              {exams === null && <tr><td colSpan={5} className="px-3 py-10 text-center text-slate-400">Chargement…</td></tr>}
-              {exams !== null && recent.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-10 text-center text-slate-400">
-                  {all.length === 0 ? 'Aucun examen pour le moment. Créez votre premier examen.' : 'Aucun examen trouvé.'}
-                </td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                    <div className="shrink-0"><StatusBadge status={STATUS_LABEL[e.status]} /></div>
+                  </div>
+                  <dl className="mt-2 space-y-1 text-[11px] text-slate-500">
+                    <div className="flex justify-between gap-2"><dt>Date</dt><dd>{fmtDate(e.date)}</dd></div>
+                    <div className="flex justify-between gap-2"><dt>Étudiants</dt><dd>{e.studentsCount}</dd></div>
+                    <div className="flex justify-between gap-2"><dt>Notes saisies</dt><dd className="text-slate-600">{e.gradedCount}/{e.studentsCount}</dd></div>
+                  </dl>
+                  <div className="mt-2 h-1.5 w-full rounded bg-slate-100">
+                    <div className={`h-1.5 rounded ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
         <Pagination info={`${recent.length} sur ${filtered.length} examens · Voir tous dans « Mes examens »`} />
       </Card>
     </>
