@@ -4,9 +4,9 @@ const icons = { users: Users, book: BookOpen, shield: ShieldCheck, lock: Lock }
 
 export default function AuthLayout({ eyebrow, title, subtitle, features = [], children }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1fr_1fr]">
+    <div className="flex min-h-dvh flex-col lg:grid lg:grid-cols-2">
       {/* Barre mobile */}
-      <header className="flex items-center justify-between bg-navy px-5 py-4 text-white lg:hidden">
+      <header className="flex items-center justify-between bg-navy px-4 py-3 text-white sm:px-5 sm:py-4 lg:hidden">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <span className="rounded bg-white/10 p-1"><GraduationCap size={16} /></span> CC Manager
         </div>
@@ -51,18 +51,19 @@ export default function AuthLayout({ eyebrow, title, subtitle, features = [], ch
       </aside>
 
       {/* Contenu */}
-      <main className="flex flex-col bg-slate-50">
+      <main className="flex flex-1 flex-col bg-slate-50">
         <div className="hidden justify-end px-8 pt-6 lg:flex">
           <a href="#" className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700">
             <LifeBuoy size={14} /> Besoin d'aide ?
           </a>
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-5 py-8">
+        {/* Mobile : contenu en haut de l'écran, pour que le clavier ne cache pas les champs */}
+        <div className="flex flex-1 items-start justify-center px-4 py-6 sm:items-center sm:px-5 sm:py-8">
           <div className="w-full max-w-md">{children}</div>
         </div>
 
-        <footer className="flex items-center justify-center gap-4 px-5 pb-6 text-[11px] text-slate-400">
+        <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-[11px] text-slate-400">
           <a href="#">Aide</a><a href="#">Confidentialité</a><a href="#">Conditions</a>
           <span>© 2026 CC Manager</span>
         </footer>

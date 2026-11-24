@@ -20,12 +20,14 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={push}>
       {children}
-      <div aria-live="polite" className="fixed bottom-4 right-4 z-50 space-y-2">
+      {/* Mobile : pleine largeur, au-dessus de la barre du bas. Ordinateur : en bas à droite. */}
+      <div aria-live="polite"
+        className="pointer-events-none fixed inset-x-3 bottom-[calc(4.5rem_+_env(safe-area-inset-bottom))] z-[60] flex flex-col items-stretch gap-2 lg:inset-x-auto lg:bottom-4 lg:right-4 lg:items-end">
         {items.map(({ id, type, message }) => {
           const [bg, Icon] = styles[type]
           return (
-            <div key={id} className={`flex items-center gap-2 rounded-lg px-4 py-3 text-xs font-medium text-white shadow-lg ${bg}`}>
-              <Icon size={14} /> {message}
+            <div key={id} className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg lg:text-xs ${bg}`}>
+              <Icon size={16} className="mt-0.5 shrink-0" /> <span className="min-w-0 break-words">{message}</span>
             </div>
           )
         })}
