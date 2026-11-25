@@ -34,36 +34,36 @@ export default function ProfessorLogin() {
         { icon: 'shield', title: 'Accès sécurisé', text: 'Réservé aux professeurs autorisés.' },
       ]}
     >
-      <div className="rounded-xl border border-slate-200 bg-white p-7 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-7">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Accès professeur</p>
-        <h2 className="mt-2 text-2xl font-bold text-slate-900">Connexion professeur</h2>
+        <h2 className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">Connexion professeur</h2>
         <p className="mt-2 text-xs text-slate-500">
           Les comptes professeur sont créés par l'administration de l'établissement.
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4" noValidate>
-          <Field label="Adresse e-mail" name="email" type="email" register={register}
+        <form onSubmit={handleSubmit(onSubmit)} className="stagger mt-5 space-y-4 sm:mt-6" noValidate>
+          <Field label="Adresse e-mail" name="email" type="email" register={register} autoComplete="email"
             placeholder="prenom.nom@etablissement.fr"
             rules={{ required: "L'e-mail est requis" }} error={errors.email?.message} />
-          <Field label="Mot de passe" name="password" type="password" register={register}
+          <Field label="Mot de passe" name="password" type="password" register={register} autoComplete="current-password"
             placeholder="Saisissez votre mot de passe"
             rules={{ required: 'Le mot de passe est requis' }} error={errors.password?.message} />
 
           {errors.root?.server && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">
+            <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">
               {errors.root.server.message}
             </p>
           )}
 
           <button type="submit" disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
             {isSubmitting
               ? <><Loader2 size={14} className="animate-spin" /> Connexion…</>
               : <>Se connecter <ArrowRight size={14} /></>}
           </button>
         </form>
 
-        <Link to="/" className="mt-4 flex items-center justify-center gap-1.5 text-xs font-medium text-primary hover:underline">
+        <Link to="/" className="mt-3 flex min-h-11 items-center justify-center gap-1.5 text-xs font-medium text-primary hover:underline">
           <ArrowLeft size={12} /> Retour à la connexion étudiant
         </Link>
       </div>

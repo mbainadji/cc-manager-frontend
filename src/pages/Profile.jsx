@@ -6,8 +6,9 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../components/ToastContext'
 import api, { errorMessage } from '../api'
 
-const input = 'mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
+const input = 'mt-1 min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 sm:min-h-0 sm:py-2'
 const label = 'text-[11px] font-medium text-slate-700'
+const primaryBtn = 'flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:inline-flex sm:min-h-0 sm:w-auto'
 
 export default function Profile() {
   const { user } = useAuth()
@@ -61,14 +62,14 @@ export default function Profile() {
         subtitle="Vos informations et la sécurité de votre compte."
       />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="stagger grid gap-4 sm:gap-5 lg:grid-cols-2">
         <Card>
           <h2 className="text-sm font-semibold text-slate-900">Mes informations</h2>
           <dl className="mt-4 space-y-4">
             {info.map(([k, v]) => (
               <div key={k}>
                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-800">{v}</dd>
+                <dd className="mt-1 break-words text-sm font-medium text-slate-800">{v}</dd>
               </div>
             ))}
           </dl>
@@ -80,19 +81,19 @@ export default function Profile() {
           </h2>
           <form onSubmit={submit} className="mt-4 space-y-4">
             <div>
-              <label className={label}>Mot de passe actuel</label>
-              <input type="password" className={input} value={form.current} onChange={set('current')} autoComplete="current-password" required />
+              <label htmlFor="pw-current" className={label}>Mot de passe actuel</label>
+              <input id="pw-current" type="password" className={input} value={form.current} onChange={set('current')} autoComplete="current-password" required />
             </div>
             <div>
-              <label className={label}>Nouveau mot de passe</label>
-              <input type="password" className={input} value={form.next} onChange={set('next')} placeholder="8 caractères minimum" autoComplete="new-password" required />
+              <label htmlFor="pw-next" className={label}>Nouveau mot de passe</label>
+              <input id="pw-next" type="password" className={input} value={form.next} onChange={set('next')} placeholder="8 caractères minimum" autoComplete="new-password" required />
             </div>
             <div>
-              <label className={label}>Confirmer le nouveau mot de passe</label>
-              <input type="password" className={input} value={form.confirm} onChange={set('confirm')} autoComplete="new-password" required />
+              <label htmlFor="pw-confirm" className={label}>Confirmer le nouveau mot de passe</label>
+              <input id="pw-confirm" type="password" className={input} value={form.confirm} onChange={set('confirm')} autoComplete="new-password" required />
             </div>
-            {error && <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
-            <button type="submit" disabled={busy} className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
+            {error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600 motion-safe:animate-pop">{error}</p>}
+            <button type="submit" disabled={busy} className={primaryBtn}>
               {busy ? 'Enregistrement…' : 'Enregistrer'}
             </button>
           </form>
@@ -102,7 +103,7 @@ export default function Profile() {
           <Card>
             <h2 className="text-sm font-semibold text-slate-900">Administration</h2>
             <p className="mt-2 text-[11px] text-slate-500">Créer des comptes professeur et réinitialiser leur mot de passe.</p>
-            <Link to="/professeurs" className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+            <Link to="/professeurs" className={`${primaryBtn} mt-4`}>
               Gérer les professeurs
             </Link>
           </Card>
@@ -119,19 +120,18 @@ export default function Profile() {
             </p>
             <form onSubmit={newRecovery} className="mt-4 space-y-4">
               <div>
-                <label className={label}>Mot de passe actuel</label>
-                <input type="password" className={input} value={rec.password}
+                <label htmlFor="rec-password" className={label}>Mot de passe actuel</label>
+                <input id="rec-password" type="password" className={input} value={rec.password}
                   onChange={(e) => setRec({ ...rec, password: e.target.value })} autoComplete="current-password" required />
               </div>
-              {rec.error && <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{rec.error}</p>}
+              {rec.error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600 motion-safe:animate-pop">{rec.error}</p>}
               {rec.code && (
-                <div className="rounded-md bg-slate-50 p-3 text-center">
+                <div className="rounded-md bg-slate-50 p-3 text-center motion-safe:animate-pop">
                   <p className="text-[11px] text-slate-500">Notez ce code maintenant, il ne sera plus affiché.</p>
-                  <p className="mt-2 select-all font-mono text-lg font-semibold tracking-wider text-slate-800">{rec.code}</p>
+                  <p className="mt-2 select-all break-all font-mono text-lg font-semibold tracking-wider text-slate-800">{rec.code}</p>
                 </div>
               )}
-              <button type="submit" disabled={rec.busy}
-                className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
+              <button type="submit" disabled={rec.busy} className={primaryBtn}>
                 {rec.busy ? 'Génération…' : 'Générer un nouveau code'}
               </button>
             </form>

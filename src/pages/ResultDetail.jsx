@@ -37,7 +37,7 @@ export default function ResultDetail() {
         title="Détail du résultat"
         subtitle="Le détail de votre évaluation et ce qui vous est personnellement destiné."
         actions={
-          <Link to="/resultats" className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+          <Link to="/resultats" className="flex min-h-11 items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 sm:min-h-0">
             <ArrowLeft size={14} /> Retour à mes résultats
           </Link>
         }
@@ -48,30 +48,30 @@ export default function ResultDetail() {
           <Badge tone="green">Publié</Badge>
           {r.correctedAt && <Badge tone="blue">Corrigée</Badge>}
         </div>
-        <h2 className="mt-3 text-xl font-bold text-slate-900">{r.title}</h2>
+        <h2 className="mt-3 break-words text-lg font-bold text-slate-900 sm:text-xl">{r.title}</h2>
         <p className="text-xs text-slate-400">{user?.name} · Matricule {user?.matricule}</p>
 
-        <div className="mt-5 grid gap-6 md:grid-cols-[200px_1fr]">
-          <div className="rounded-lg bg-blue-50 p-5">
+        <div className="mt-5 grid gap-5 md:grid-cols-[200px_1fr] md:gap-6">
+          <div className="rounded-lg bg-blue-50 p-4 text-center motion-safe:animate-pop sm:p-5 md:text-left">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">Note obtenue</p>
-            <p className="mt-2 text-4xl font-bold text-slate-900">{r.score} / {r.max}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">{r.score} / {r.max}</p>
             <p className="mt-1 text-[11px] text-slate-500">Barème : {r.max} points</p>
           </div>
-          <dl className="grid gap-4 sm:grid-cols-2">
+          <dl className="stagger grid gap-4 sm:grid-cols-2">
             {info.map(([k, v]) => (
-              <div key={k}>
+              <div key={k} className="min-w-0">
                 <dt className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-800">{v}</dd>
+                <dd className="mt-1 break-words text-sm font-medium text-slate-800">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
 
-        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
           <p className="flex items-center gap-2 text-xs font-semibold text-slate-800">
             <MessageSquare size={14} className="text-primary" /> Appréciation du professeur
           </p>
-          <p className="mt-2 text-xs text-slate-600">{r.comment || 'Aucune appréciation pour cette évaluation.'}</p>
+          <p className="mt-2 whitespace-pre-line break-words text-xs text-slate-600">{r.comment || 'Aucune appréciation pour cette évaluation.'}</p>
           <p className="mt-2 text-[10px] text-slate-400">Publié le {fmtDate(r.publishedAt)}</p>
           {r.correctedAt && (
             <p className="mt-1 text-[10px] font-medium text-primary">Note corrigée le {fmtDate(r.correctedAt)}</p>

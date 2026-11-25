@@ -4,8 +4,9 @@ import { FileText, Users, Search, Info } from 'lucide-react'
 import { Card, PageHeader } from '../components/ui'
 import api, { errorMessage } from '../api'
 
-const input = 'mt-1 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:text-slate-400'
+const input = 'mt-1 min-h-11 w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100 disabled:text-slate-400 sm:min-h-0 sm:py-2'
 const label = 'text-[11px] font-medium text-slate-700'
+const check = 'h-5 w-5 shrink-0 accent-primary sm:h-4 sm:w-4'
 
 export default function CreateExam() {
   const { id } = useParams()
@@ -100,29 +101,38 @@ export default function CreateExam() {
         subtitle="Renseignez votre évaluation et choisissez les étudiants concernés."
       />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="stagger grid gap-4 sm:gap-5 lg:grid-cols-2">
         <Card>
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><FileText size={14} className="text-primary" /> Informations générales</h2>
           <p className="text-[11px] text-slate-400">Définissez le titre, la date et le barème.</p>
 
           <div className="mt-4 space-y-4">
             <div>
-              <label className={label}>Titre de l'examen *</label>
-              <input className={input} placeholder="CC2" value={form.title} onChange={set('title')} />
+              <label htmlFor="exam-title" className={label}>Titre de l'examen *</label>
+              <input id="exam-title" className={input} placeholder="CC2" value={form.title} onChange={set('title')} />
               <p className="mt-1 text-[10px] text-slate-400">Exemples : CC1, CC2, TP noté, Interrogation.</p>
             </div>
             <div>
-              <label className={label}>Matière ou intitulé de l'évaluation *</label>
-              <input className={input} placeholder="Analyse mathématique" value={form.subject} onChange={set('subject')} />
+              <label htmlFor="exam-subject" className={label}>Matière ou intitulé de l'évaluation *</label>
+              <input id="exam-subject" className={input} placeholder="Analyse mathématique" value={form.subject} onChange={set('subject')} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className={label}>Date de l'examen *</label><input type="date" className={input} value={form.date} onChange={set('date')} /></div>
-              <div><label className={label}>Barème maximal *</label><input type="number" min="1" className={input} value={form.max} onChange={set('max')} disabled={published} /></div>
-              <div><label className={label}>Coefficient</label><input type="number" min="0.5" step="0.5" className={input} value={form.coef} onChange={set('coef')} disabled={published} /></div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="col-span-2 sm:col-span-1">
+                <label htmlFor="exam-date" className={label}>Date de l'examen *</label>
+                <input id="exam-date" type="date" className={input} value={form.date} onChange={set('date')} />
+              </div>
+              <div>
+                <label htmlFor="exam-max" className={label}>Barème maximal *</label>
+                <input id="exam-max" type="number" inputMode="decimal" min="1" className={input} value={form.max} onChange={set('max')} disabled={published} />
+              </div>
+              <div>
+                <label htmlFor="exam-coef" className={label}>Coefficient</label>
+                <input id="exam-coef" type="number" inputMode="decimal" min="0.5" step="0.5" className={input} value={form.coef} onChange={set('coef')} disabled={published} />
+              </div>
             </div>
             <div>
-              <label className={label}>Description (facultatif)</label>
-              <textarea rows={3} className={input} placeholder="Consignes sur les sujets et les durées…" value={form.description} onChange={set('description')} />
+              <label htmlFor="exam-desc" className={label}>Description (facultatif)</label>
+              <textarea id="exam-desc" rows={3} className={input} placeholder="Consignes sur les sujets et les durées…" value={form.description} onChange={set('description')} />
             </div>
             <div className="flex items-start gap-2 rounded-md bg-blue-50 p-3 text-[11px] text-slate-600">
               <Info size={13} className="mt-0.5 shrink-0 text-primary" />
@@ -139,53 +149,54 @@ export default function CreateExam() {
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Users size={14} className="text-primary" /> Étudiants concernés</h2>
           <p className="text-[11px] text-slate-400">Les étudiants de la liste importée apparaissent ici, inscrits ou non.</p>
 
-          <label className={`mt-4 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs font-medium text-slate-800 ${published ? 'opacity-60' : 'cursor-pointer'}`}>
-            <input type="checkbox" checked={everyone} disabled={published} onChange={(e) => setEveryone(e.target.checked)} />
-            <span>
+          <label className={`mt-4 flex min-h-12 items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-xs font-medium text-slate-800 ${published ? 'opacity-60' : 'cursor-pointer'}`}>
+            <input type="checkbox" className={check} checked={everyone} disabled={published} onChange={(e) => setEveryone(e.target.checked)} />
+            <span className="min-w-0">
               Tous les étudiants de la liste ({students?.length ?? 0})
               <span className="block text-[10px] font-normal text-slate-400">Les étudiants qui s'inscrivent plus tard seront inclus automatiquement.</span>
             </span>
           </label>
 
           {!everyone && (
-            <>
+            <div className="motion-safe:animate-fade-up">
               <div className="relative mt-4">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input className={`${input} mt-0 pl-8`} placeholder="Rechercher par matricule ou nom" value={q} onChange={(e) => setQ(e.target.value)} />
+                <input aria-label="Rechercher un étudiant" className={`${input} mt-0 pl-8`} placeholder="Rechercher par matricule ou nom" value={q} onChange={(e) => setQ(e.target.value)} />
               </div>
 
               <div className="mt-3 max-h-96 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200">
-                <label className="flex items-center gap-3 bg-blue-50 px-3 py-2 text-xs font-medium text-slate-800">
-                  <input type="checkbox" checked={allChecked} disabled={published} onChange={toggleAll} /> Tout sélectionner ({visible.length})
+                <label className="flex min-h-11 items-center gap-3 bg-blue-50 px-3 py-2 text-xs font-medium text-slate-800">
+                  <input type="checkbox" className={check} checked={allChecked} disabled={published} onChange={toggleAll} /> Tout sélectionner ({visible.length})
                 </label>
                 {students === null && <p className="px-3 py-6 text-center text-xs text-slate-400">Chargement…</p>}
                 {students !== null && visible.length === 0 && <p className="px-3 py-6 text-center text-xs text-slate-400">Aucun étudiant dans la liste pour le moment.</p>}
                 {visible.map((s) => (
-                  <label key={s.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50">
-                    <input type="checkbox" checked={selected.has(s.id)} disabled={published} onChange={() => toggle(s.id)} />
-                    <span className="text-xs">
-                      <span className="font-medium text-slate-800">{s.fullName}</span>
+                  <label key={s.id} className="flex min-h-12 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50">
+                    <input type="checkbox" className={check} checked={selected.has(s.id)} disabled={published} onChange={() => toggle(s.id)} />
+                    <span className="min-w-0 text-xs">
+                      <span className="block break-words font-medium text-slate-800">{s.fullName}</span>
                       <span className="block text-[10px] text-slate-400">{s.matricule}</span>
                     </span>
                   </label>
                 ))}
               </div>
-            </>
+            </div>
           )}
         </Card>
       </div>
 
-      {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600 motion-safe:animate-pop">{error}</p>}
 
-      <div className="sticky bottom-0 -mx-5 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-3 lg:-mx-8 lg:px-8">
+      {/* Mobile : la barre se place au-dessus du menu du bas ; ordinateur : collée en bas de l'écran */}
+      <div className="sticky bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-20 -mx-3 mt-6 flex flex-col gap-3 border-t border-slate-200 bg-white px-3 py-3 sm:-mx-5 sm:px-5 lg:bottom-0 lg:-mx-8 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <p className="text-xs text-slate-600">
           <strong>{count} étudiants concernés</strong> · Barème sur {form.max}
           <span className="block text-[10px] text-slate-400">Vous pourrez modifier la sélection plus tard.</span>
         </p>
-        <div className="flex gap-2">
-          <button disabled={saving} onClick={() => navigate('/examens')} className="rounded-md border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60">Annuler</button>
-          <button disabled={saving} onClick={submit} className="rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
-            {saving ? 'Enregistrement…' : editing ? 'Enregistrer les modifications' : "Créer l'examen"}
+        <div className="grid grid-cols-2 gap-2 lg:flex">
+          <button disabled={saving} onClick={() => navigate('/examens')} className="min-h-11 rounded-md border border-slate-200 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60 lg:min-h-0">Annuler</button>
+          <button disabled={saving} onClick={submit} className="min-h-11 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-60 lg:min-h-0">
+            {saving ? 'Enregistrement…' : editing ? 'Enregistrer' : "Créer l'examen"}
           </button>
         </div>
       </div>
