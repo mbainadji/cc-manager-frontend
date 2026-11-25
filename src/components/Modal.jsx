@@ -20,9 +20,9 @@ export default function Modal({ open, title, children, confirmLabel = 'Confirmer
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 md:items-center md:p-4"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 motion-safe:animate-fade-in md:items-center md:p-4"
       onClick={onClose} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-      <div className="flex max-h-[90dvh] w-full flex-col rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-xl md:max-w-md md:rounded-xl md:p-6"
+      <div className="flex max-h-[90dvh] w-full flex-col rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-xl motion-safe:animate-sheet-up md:max-w-md md:rounded-xl md:p-6 md:motion-safe:animate-pop"
         onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-3 h-1 w-10 shrink-0 rounded-full bg-slate-200 md:hidden" />
         <h2 id={titleId} className="shrink-0 text-base font-semibold text-slate-900">{title}</h2>

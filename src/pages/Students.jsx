@@ -248,7 +248,7 @@ export default function Students() {
             </table>
           </div>
         ) : (
-          <ul className="mt-4 space-y-3">
+          <ul className="stagger mt-4 space-y-3">
             {students === null && <li className="py-10 text-center text-xs text-slate-400">Chargement…</li>}
             {students !== null && rows.length === 0 && <li className="py-10 text-center text-xs text-slate-400">{emptyText}</li>}
             {rows.map((s) => (

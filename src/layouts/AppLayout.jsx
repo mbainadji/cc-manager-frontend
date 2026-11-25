@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   GraduationCap, LayoutDashboard, FileText, PlusCircle, LogOut,
   ClipboardList, Users, CheckCircle2, Settings, Search, Bell, ShieldCheck,
@@ -28,6 +28,7 @@ const profile = { to: '/profil', label: 'Profil et paramètres', short: 'Profil'
 export default function AppLayout({ role: roleProp }) {
   const { user: account, logout } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const role = roleProp ?? account?.role
   const { label, menu } = roles[role]
   const tabs = [...menu, profile]
@@ -104,7 +105,7 @@ export default function AppLayout({ role: roleProp }) {
           </div>
         </header>
 
-        <main className="flex-1 p-3 sm:p-5 lg:p-8"><Outlet /></main>
+        <main className="flex-1 p-3 sm:p-5 lg:p-8"><div key={pathname} className="motion-safe:animate-fade-up"><Outlet /></div></main>
 
         <p className="flex items-center justify-center gap-1.5 px-4 pb-[calc(5rem_+_env(safe-area-inset-bottom))] text-center text-[11px] text-slate-400 lg:pb-5">
           <ShieldCheck size={12} className="shrink-0" /> Vos données restent confidentielles et ne sont jamais partagées.

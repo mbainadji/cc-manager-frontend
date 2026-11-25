@@ -26,7 +26,7 @@ export function ToastProvider({ children }) {
         {items.map(({ id, type, message }) => {
           const [bg, Icon] = styles[type]
           return (
-            <div key={id} className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg lg:text-xs ${bg}`}>
+            <div key={id} className={`pointer-events-auto motion-safe:animate-toast-in flex max-w-md items-start gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg lg:text-xs ${bg}`}>
               <Icon size={16} className="mt-0.5 shrink-0" /> <span className="min-w-0 break-words">{message}</span>
             </div>
           )

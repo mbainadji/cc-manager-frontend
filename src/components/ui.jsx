@@ -44,7 +44,7 @@ export const Notice = ({ children }) => (
 
 export function StatCard({ icon: Icon, tone = 'blue', value, label, hint }) {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 transition duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5 sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <span className={`shrink-0 rounded-md p-2 ${tones[tone] ?? tones.slate}`}><Icon size={14} /></span>
         <span className="truncate text-xl font-bold text-slate-900 sm:text-2xl">{value}</span>

@@ -143,7 +143,7 @@ export default function ExamsList({ onlyPublished = false }) {
             </table>
           </div>
         ) : (
-          <ul className="mt-4 space-y-3">
+          <ul className="stagger mt-4 space-y-3">
             {exams === null && !error && <li className="py-10 text-center text-xs text-slate-400">Chargement…</li>}
             {exams !== null && rows.length === 0 && <li className="py-10 text-center text-xs text-slate-400">Aucun examen trouvé.</li>}
             {rows.map((e) => (

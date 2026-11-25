@@ -109,7 +109,7 @@ export default function ExamResults() {
         </Link>
       </Card>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+      <div className="stagger mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         <StatCard icon={PencilLine} value={stats.notes.length} label="Notes enregistrées" hint={`Sur ${grades.length} étudiants`} />
         <StatCard icon={AlertCircle} tone="orange" value={stats.missing} label="Notes manquantes" hint="À compléter" />
         <StatCard icon={BarChart3} value={stats.avg === null ? '—' : `${fmtNum(stats.avg)} / ${stats.max}`} label="Moyenne de la classe" hint={`Sur ${stats.notes.length} notes`} />
@@ -127,7 +127,7 @@ export default function ExamResults() {
             <div key={d.label} className="flex items-center gap-3 text-[11px]">
               <span className="w-20 shrink-0 text-slate-500">{d.label}</span>
               <div className="h-4 min-w-0 flex-1 rounded bg-slate-100">
-                <div className="h-4 rounded bg-primary" style={{ width: `${(d.count / maxCount) * 100}%` }} />
+                <div className="h-4 origin-left rounded bg-primary motion-safe:animate-grow-x" style={{ width: `${(d.count / maxCount) * 100}%` }} />
               </div>
               <span className="w-6 shrink-0 text-right font-medium text-slate-700">{d.count}</span>
             </div>
@@ -179,7 +179,7 @@ export default function ExamResults() {
             </table>
           </div>
         ) : (
-          <ul className="mt-3 space-y-2">
+          <ul className="stagger mt-3 space-y-2">
             {rows.map((g) => (
               <li key={g.studentId} className={`rounded-lg border p-3 ${g.score === null ? 'border-orange-100 bg-orange-50' : 'border-slate-200'}`}>
                 <div className="flex items-start justify-between gap-2">

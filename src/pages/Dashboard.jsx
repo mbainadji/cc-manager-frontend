@@ -49,7 +49,7 @@ export default function Dashboard() {
 
       {error && <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="stagger grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={FileText} value={all.length} label="Examens créés" hint="Au total" />
         <StatCard icon={Users} tone="blue" value={studentsCount} label="Étudiants inscrits" hint="Sur la plateforme" />
         <StatCard icon={PencilLine} tone="orange" value={toPublish} label="Examens à publier" hint="Brouillon, saisie ou prêts" />
@@ -101,7 +101,7 @@ export default function Dashboard() {
                       <td className="px-3 py-3">
                         <span className="text-slate-600">{e.gradedCount}/{e.studentsCount}</span>
                         <div className="mt-1 h-1 w-20 rounded bg-slate-100">
-                          <div className={`h-1 rounded ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                          <div className={`h-1 origin-left rounded motion-safe:animate-grow-x ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                         </div>
                       </td>
                       <td className="px-3 py-3"><StatusBadge status={STATUS_LABEL[e.status]} /></td>
@@ -116,7 +116,7 @@ export default function Dashboard() {
             </table>
           </div>
         ) : (
-          <ul className="mt-4 space-y-3">
+          <ul className="stagger mt-4 space-y-3">
             {exams === null && <li className="py-10 text-center text-xs text-slate-400">Chargement…</li>}
             {exams !== null && recent.length === 0 && <li className="py-10 text-center text-xs text-slate-400">{emptyText}</li>}
             {recent.map((e) => {
@@ -136,7 +136,7 @@ export default function Dashboard() {
                     <div className="flex justify-between gap-2"><dt>Notes saisies</dt><dd className="text-slate-600">{e.gradedCount}/{e.studentsCount}</dd></div>
                   </dl>
                   <div className="mt-2 h-1.5 w-full rounded bg-slate-100">
-                    <div className={`h-1.5 rounded ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-1.5 origin-left rounded motion-safe:animate-grow-x ${pct >= 100 ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
                   </div>
                 </li>
               )

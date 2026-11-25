@@ -24,7 +24,7 @@ export default function AuthLayout({ eyebrow, title, subtitle, features = [], ch
           <h1 className="text-4xl font-bold leading-tight">{title}</h1>
           <p className="mt-4 text-sm text-white/60">{subtitle}</p>
 
-          <ul className="mt-8 space-y-4">
+          <ul className="stagger mt-8 space-y-4">
             {features.map(({ icon, title, text }) => {
               const Icon = icons[icon]
               return (
@@ -60,7 +60,7 @@ export default function AuthLayout({ eyebrow, title, subtitle, features = [], ch
 
         {/* Mobile : contenu en haut de l'écran, pour que le clavier ne cache pas les champs */}
         <div className="flex flex-1 items-start justify-center px-4 py-6 sm:items-center sm:px-5 sm:py-8">
-          <div className="w-full max-w-md">{children}</div>
+          <div className="w-full max-w-md motion-safe:animate-fade-up">{children}</div>
         </div>
 
         <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-[11px] text-slate-400">

@@ -129,7 +129,7 @@ export default function MyResults() {
                 </table>
               </div>
             ) : (
-              <ul className="mt-4 space-y-3">
+              <ul className="stagger mt-4 space-y-3">
                 {rows.map((r) => (
                   <li key={r.id} className="rounded-lg border border-slate-200 p-3">
                     <div className="flex items-start justify-between gap-3">

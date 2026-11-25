@@ -273,7 +273,7 @@ export default function GradeEntry() {
             </table>
           </div>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="stagger divide-y divide-slate-100">
             {rows.map((s, i) => {
               const st = rowState(s)
               return (
@@ -307,7 +307,7 @@ export default function GradeEntry() {
       {!isLarge && dirty && (
         <>
           <div className="h-16" />
-          <div className="fixed inset-x-0 bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-20 border-t border-slate-200 bg-white p-2 shadow-lg">
+          <div className="fixed inset-x-0 bottom-[calc(3.5rem_+_env(safe-area-inset-bottom))] z-20 border-t border-slate-200 bg-white p-2 shadow-lg motion-safe:animate-sheet-up">
             <button onClick={save} disabled={busy}
               className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-primary text-sm font-semibold text-white disabled:opacity-60">
               {busy && !confirm ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Enregistrer les modifications
